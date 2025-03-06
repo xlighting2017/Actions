@@ -20,9 +20,9 @@ env:
   REPO_URL: https://github.com/qosmio/openwrt-ipq
   REPO_BRANCH: main-nss
   FEEDS_CONF: ipq807x/feeds.conf
-  CONFIG_FILE: .config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
+  CONFIG_FILE: ipq807x/.config
+  DIY_P1_SH: ipq807x/diy-part1.sh
+  DIY_P2_SH: ipq807x/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
