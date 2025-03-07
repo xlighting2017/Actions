@@ -168,6 +168,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
+        delete_workflow_pattern: ${{ env.TARGET_NAME }}
         retain_days: 7
         keep_minimum_runs: 2
 
@@ -177,5 +178,6 @@ jobs:
       with:
         keep_latest: 3
         delete_tags: true
+        delete_tag_pattern: ${{ env.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
