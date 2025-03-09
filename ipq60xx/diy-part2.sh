@@ -20,7 +20,6 @@
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
 
 # use 3-party mosdns
-cd ..
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/xlighting2017/luci-app-mosdns -b v5 package/mosdns
 

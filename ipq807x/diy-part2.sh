@@ -29,9 +29,9 @@ git checkout
 # copy to package for further use
 cp -R package/emortal/* ../package/
 cp "target/linux/generic/hack-6.6/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch" "../target/linux/generic/hack-6.6/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch"
+cd ..
 
 # use 3-party mosdns
-cd ..
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 
