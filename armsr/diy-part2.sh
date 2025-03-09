@@ -27,3 +27,7 @@ git clone --depth 1 https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdn
 # amlogic (armsr only)
 # Add the plugin
 git clone --depth 1 https://github.com/ophub/luci-app-amlogic.git package/luci-app-amlogic
+
+# update feeds after introduce new package(s)
+./scripts/feeds update -a
+./scripts/feeds install -a

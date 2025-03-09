@@ -23,3 +23,7 @@
 cd ..
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/xlighting2017/luci-app-mosdns -b v5 package/mosdns
+
+# update feeds after introduce new package(s)
+./scripts/feeds update -a
+./scripts/feeds install -a
