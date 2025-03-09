@@ -151,7 +151,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.TARGET_NAME }}_${{ steps.tag.outputs.release_tag }}
+        tag_name: ${{ env.TARGET_NAME }}
         body: |
           Target: ${{ env.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
