@@ -22,6 +22,7 @@ on:
         default: 's905d_qeum'
         type: choice
         options: 
+          - s905d_qeum
           - vplus
           - cm3
           - jp-tvbox
@@ -64,6 +65,7 @@ on:
         default: "6.6.y_6.12.y"
         type: choice
         options:
+          - 6.6.y_6.12.y
           - 5.4.y
           - 5.10.y
           - 5.15.y
@@ -74,7 +76,6 @@ on:
           - 5.15.y_6.1.y
           - 6.1.y_6.12.y
           - 6.1.y_6.6.y
-          - 6.6.y_6.12.y
   #schedule:
     #- cron: '0 17 * * *'
 
@@ -232,13 +233,13 @@ jobs:
     - name: Package OpenWrt Firmware
       uses: ophub/flippy-openwrt-actions@main
       env:
-          OPENWRT_ARMVIRT: ${{ env.FIRMWARE }}/*.rootfs.img.gz
+          OPENWRT_ARMVIRT: openwrt/bin/targets/armsr/armv8/*.rootfs.img.gz
           PACKAGE_SOC: ${{ env.PACKAGE_SOC }}
           KERNEL_VERSION_NAME: ${{ github.event.inputs.openwrt_kernel }}
   
-    - name: Upload package firmware to release
+    - name: Upload packaged firmware to release
       uses: softprops/action-gh-release@master
-      if:  env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if:  env.PACKAGED_STATUS == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
