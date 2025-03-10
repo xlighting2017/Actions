@@ -135,7 +135,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: Immortalwrt_firmware${{ env.TARGET_NAME }}_${{ env.FILE_DATE }}
+        name: Immortalwrt_firmware_${{ env.TARGET_NAME }}_${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
     - name: Generate release tag
