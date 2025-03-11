@@ -124,6 +124,8 @@ jobs:
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | tr '\n' '/' | sed -r 's/\/$//' > DEVICE_NAME
         echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
+        echo "DEVICE_IP=$(cat DEVICE_IP)" >> $GITHUB_ENV
         echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
 
     - name: Check space usage
@@ -170,7 +172,7 @@ jobs:
         body: |
           Target: ${{ matrix.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
-          Default IP: 192.168.199.1
+          Default IP: ${{ env.DEVICE_IP }}
           Default password: NULL
           Luci App installed:
             - amlogic (armsr only)
