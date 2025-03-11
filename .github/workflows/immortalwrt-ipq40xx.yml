@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: Build sunxi
+name: Build ipq40xx
 
 on:
   repository_dispatch:
