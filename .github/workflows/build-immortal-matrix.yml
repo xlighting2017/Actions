@@ -23,11 +23,11 @@ env:
   CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  DRY_RUN: true
+  DRY_RUN: false
+  FREE_DISK_SPACE: false
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
-  FREE_DISK_SPACE: false
   TZ: Asia/Shanghai
 
 jobs:    
@@ -35,9 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 3
       matrix:
-        TARGET_NAME: [armsr, ipq40xx, mediatek, rockchip, sunxi, x86_64]
+        TARGET_NAME: [ipq40xx, rockchip, sunxi, armsr, mediatek, x86_64]
     steps:
     - name: Checkout
       uses: actions/checkout@main
