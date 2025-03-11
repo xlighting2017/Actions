@@ -10,11 +10,14 @@
 # See /LICENSE for more information.
 #
 
-name: Build ipq807x with ECM/WiFi Offloading
+name: Build ipq807x with ECM
 
 on:
   repository_dispatch:
+    types: [Source_Code_Update_qosmio]
   workflow_dispatch:
+  #  schedule:
+  #    - cron: 11 22 * * 5
 
 env:
   REPO_URL: https://github.com/qosmio/openwrt-ipq

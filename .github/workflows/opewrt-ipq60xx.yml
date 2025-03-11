@@ -14,7 +14,10 @@ name: Build ipq60xx with ECM
 
 on:
   repository_dispatch:
+    types: [Source_Code_Update_VIKINGYFY]
   workflow_dispatch:
+  #  schedule:
+  #    - cron: 11 22 * * 5
 
 env:
   REPO_URL: https://github.com/VIKINGYFY/immortalwrt

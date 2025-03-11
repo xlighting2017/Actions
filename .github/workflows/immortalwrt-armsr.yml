@@ -14,7 +14,10 @@ name: Build Armsr
 
 on:
   repository_dispatch:
+    types: [Source_Code_Update_test]
   workflow_dispatch:
+    #  schedule:
+    #    - cron: 11 22 * * 5
     inputs:
       openwrt_soc:
         description: 'PACKAGE_SOC for packit action, default value is s905d(N1) & qemu'
@@ -76,8 +79,6 @@ on:
           - 5.15.y_6.1.y
           - 6.1.y_6.12.y
           - 6.1.y_6.6.y
-  #schedule:
-    #- cron: '0 17 * * *'
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt

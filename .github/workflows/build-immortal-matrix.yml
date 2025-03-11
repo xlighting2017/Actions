@@ -14,7 +14,10 @@ name: Build immortalwrt matrix
 
 on:
   repository_dispatch:
+    types: [Source_Code_Update_immortalwrt]
   workflow_dispatch:
+    #  schedule:
+    #    - cron: 11 22 * * 5
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -167,11 +170,15 @@ jobs:
         body: |
           Target: ${{ matrix.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
-          Default IP: 192.168.99.1
+          Default IP: 192.168.199.1
           Default password: NULL
           Luci App installed:
+            - amlogic (armsr only)
             - frpc
-            - homeproxy
+            - homeproxy (ipq40xx only)
+            - mosdns (except ipq40xx)
+            - openclash (except ipq40xx)
+            - sqm (ipq60xx/ipq807x only)
             - ttyd
             - vlmcsd(KMS)
         files: ${{ env.FIRMWARE }}/*
