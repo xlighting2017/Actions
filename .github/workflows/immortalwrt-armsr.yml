@@ -185,3 +185,10 @@ jobs:
         delete_tag_pattern: ${{ env.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Trigger Pack_it
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
+      uses: peter-evans/repository-dispatch@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        event-type: "Openwrt_Packit"
