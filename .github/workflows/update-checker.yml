@@ -12,10 +12,6 @@
 
 name: Update Checker
 
-env:
-  REPO_URL: https://github.com/coolsnowwolf/lede
-  REPO_BRANCH: master
-
 on:
   workflow_dispatch:
 #  schedule:
@@ -24,33 +20,56 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      # max-parallel: 3
+      matrix:
+        REPO_NAME: [immortalwrt,VIKINGYFY]
+        REPO_PROJECT: [immortalwrt]
+        include:
+          - REPO_NAME: qosmio
+            REPO_PROJECT: openwrt-ipq
     steps:
-
     - name: Get Commit Hash
       id: getHash
       run: |
-        git clone --depth 1 $REPO_URL -b $REPO_BRANCH .
+        # decide REPO_BRANCH based on REPO_NAME
+        case ${{ matrix.REPO_NAME }} in
+          "immortalwrt")
+            REPO_BRANCH="master"
+            ;;
+          "VIKINGYFY")
+            REPO_BRANCH="main"
+            ;;
+          "qosmio")
+            REPO_BRANCH="main-nss"
+            ;;
+          *)
+            echo "WRONG/UNKNOWN REPO_NAME ${{ matrix.REPO_NAME }}."
+            exit 1
+            ;;
+        esac
+        git clone --depth 1 https://github.com/${{ matrix.REPO_NAME }}/${{ matrix.REPO_PROJECT }} -b $REPO_BRANCH .
         echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Compare Commit Hash
       id: cacheHash
       uses: actions/cache@v3
       with:
-        path: .commitHash
+        path: .commitHash.${{ matrix.REPO_NAME }}
         key: commitHash_${{ steps.getHash.outputs.commitHash }}
 
     - name: Save New Commit Hash
       if: steps.cacheHash.outputs.cache-hit != 'true'
       run: |
-        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash
+        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash.${{ matrix.REPO_NAME }}
 
     - name: Trigger build
       if: steps.cacheHash.outputs.cache-hit != 'true'
       uses: peter-evans/repository-dispatch@v2
       with:
-        token: ${{ github.token }}
-        event-type: Source Code Update
+        token: ${{ secrets.GITHUB_TOKEN }}
+        event-type: "Source_Code_Update_${{ matrix.REPO_NAME }}"
 
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
