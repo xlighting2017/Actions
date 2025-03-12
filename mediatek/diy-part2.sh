@@ -20,7 +20,10 @@
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
 
 # Add luci-app-modem
-git clone --depth 1 https://github.com/Siriling/5G-Modem-Support package/modem
+# git clone --depth 1 https://github.com/Siriling/5G-Modem-Support package/modem
+
+# Add luci-app-qmodem
+git clone --depth 1 https://github.com/FUjr/modem_feeds -b main package/qmodem
 
 # use 3-party mosdns
 rm -Rf feeds/packages/net/mosdns
