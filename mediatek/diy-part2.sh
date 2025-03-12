@@ -19,6 +19,9 @@
 # Modify hostname
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
 
+# Add luci-app-modem
+git clone --depth 1 https://github.com/Siriling/5G-Modem-Support package/modem
+
 # use 3-party mosdns
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
