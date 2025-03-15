@@ -46,8 +46,8 @@ jobs:
       uses: actions/checkout@main
 
     - name: Free Disk Space (Ubuntu)
-      if: env.FREE_DISK_SPACE == 'true' && (!cancelled())
       uses: jlumbroso/free-disk-space@main
+      if: env.FREE_DISK_SPACE == 'true' && (!cancelled())
       with:
         # this might remove tools that are actually needed,
         # if set to "true" but frees about 6 GB
@@ -204,8 +204,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Trigger Pack_it (only when target == armsr)
-      if: ${{ matrix.TARGET_NAME }} == 'armsr' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
       uses: peter-evans/repository-dispatch@v2
+      if: matrix.TARGET_NAME == 'armsr' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         event-type: "Openwrt_Packit"
