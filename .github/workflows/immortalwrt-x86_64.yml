@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: Build X86_64
+name: Build x86_64
 
 on:
   repository_dispatch:

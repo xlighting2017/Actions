@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: Build MediaTek/Filogic
+name: Build mediatek
 
 on:
   repository_dispatch:
