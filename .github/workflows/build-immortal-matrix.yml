@@ -159,16 +159,26 @@ jobs:
       id: tag
       if: env.DRY_RUN == 'false' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        case ${{ matrix.TARGET_NAME }} in
+          "armsr")
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}" >> $GITHUB_OUTPUT
+            ;;
+          "x86_64")
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+            ;;
+        esac
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
       uses: softprops/action-gh-release@master
-      if: env.DRY_RUN == 'false' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: env.DRY_RUN == 'false' && steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ matrix.TARGET_NAME }}_${{ steps.tag.outputs.release_tag }}
+        tag_name: ${{ steps.tag.outputs.release_tag }}
         body: |
           Target: ${{ matrix.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
