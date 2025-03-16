@@ -109,10 +109,14 @@ jobs:
         cd openwrt
         echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 V=s
-        echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | tr '\n' '/' | sed -r 's/\/$//' > DEVICE_NAME
         echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
+        echo "DEVICE_IP=$(cat DEVICE_IP)" >> $GITHUB_ENV
+        grep '^CONFIG_PACKAGE_luci-app.*=y' .config | sed -r 's/.*luci-app-(.*)=y/- \1/' | sort | uniq > DEVICE_PACKAGES
+        echo "DEVICE_PACKAGES=$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
         echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Check space usage
       if: (!cancelled())
@@ -158,15 +162,10 @@ jobs:
         body: |
           Target: ${{ env.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
-          Default IP: 192.168.199.253
+          Default IP: ${{ env.DEVICE_IP }}
           Default password: NULL
           Luci App installed:
-            - amlogic
-            - frpc
-            - mosdns
-            - openclash
-            - ttyd
-            - vlmcsd(KMS)
+            ${{ env.DEVICE_PACKAGES }}
         files: ${{ env.FIRMWARE }}/*
 
     - name: Delete workflow runs
