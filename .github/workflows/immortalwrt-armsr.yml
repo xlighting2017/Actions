@@ -155,6 +155,7 @@ jobs:
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload armsr firmware to release
+      id: upload
       uses: softprops/action-gh-release@master
       if: steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       env:
@@ -174,12 +175,12 @@ jobs:
       uses: Mattraks/delete-workflow-runs@main
       with:
         delete_workflow_pattern: ${{ env.TARGET_NAME }}
-        retain_days: 7
+        retain_days: 3
         keep_minimum_runs: 2
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: env.UPLOAD_RELEASE == 'true' && steps.upload.outputs.id != '' && !cancelled()
       with:
         keep_latest: 3
         delete_tags: true
@@ -188,7 +189,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Trigger Pack_it
-      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
+      if: steps.upload.outputs.id != '' && env.UPLOAD_RELEASE == 'true'
       uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}

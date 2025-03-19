@@ -177,6 +177,7 @@ jobs:
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
+      id: upload
       uses: softprops/action-gh-release@master
       if: env.DRY_RUN == 'false' && steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       env:
@@ -194,7 +195,7 @@ jobs:
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
-      if: env.DRY_RUN == 'false' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: env.DRY_RUN == 'false' && steps.upload.outputs.id != '' && !cancelled()
       with:
         keep_latest: 3
         delete_tags: true
@@ -204,7 +205,7 @@ jobs:
     
     - name: Trigger Pack_it (only when target == armsr)
       uses: peter-evans/repository-dispatch@v2
-      if: matrix.TARGET_NAME == 'armsr' && steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
+      if: matrix.TARGET_NAME == 'armsr' && steps.upload.outputs.id != '' && !cancelled()
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         event-type: "Openwrt_Packit"
@@ -217,5 +218,5 @@ jobs:
       if: env.DRY_RUN == 'false'
       with:
         delete_workflow_pattern: "matrix"
-        retain_days: 7
+        retain_days: 3
         keep_minimum_runs: 2

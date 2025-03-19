@@ -107,6 +107,7 @@ jobs:
           KERNEL_VERSION_NAME: "${{ env.KERNEL_VERSION_NAME }}"
   
     - name: Upload packaged firmware to release
+      id: upload
       uses: softprops/action-gh-release@master
       if:  env.PACKAGED_STATUS == 'success' && !cancelled()
       env:
@@ -135,7 +136,7 @@ jobs:
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
-      if: env.PACKAGED_STATUS == 'success' && !cancelled()
+      if: env.PACKAGED_STATUS == 'success' && steps.upload.outputs.id != '' && !cancelled()
       with:
         keep_latest: 2
         delete_tags: true

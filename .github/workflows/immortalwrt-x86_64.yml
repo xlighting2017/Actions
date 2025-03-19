@@ -155,6 +155,7 @@ jobs:
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
+      id: upload
       uses: softprops/action-gh-release@master
       if: steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       env:
@@ -179,7 +180,7 @@ jobs:
 
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: env.UPLOAD_RELEASE == 'true' && steps.upload.outputs.id != '' && !cancelled()
       with:
         keep_latest: 2
         delete_tags: true
