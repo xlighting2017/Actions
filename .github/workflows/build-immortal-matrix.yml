@@ -192,14 +192,6 @@ jobs:
             ${{ env.DEVICE_PACKAGES }}
         files: ${{ env.FIRMWARE }}/*
 
-    - name: Delete workflow runs
-      uses: Mattraks/delete-workflow-runs@main
-      if: env.DRY_RUN == 'false'
-      with:
-        delete_workflow_pattern: ${{ matrix.TARGET_NAME }}
-        retain_days: 7
-        keep_minimum_runs: 2
-
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
       if: env.DRY_RUN == 'false' && env.UPLOAD_RELEASE == 'true' && !cancelled()
@@ -212,7 +204,18 @@ jobs:
     
     - name: Trigger Pack_it (only when target == armsr)
       uses: peter-evans/repository-dispatch@v2
-      if: matrix.TARGET_NAME == 'armsr' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
+      if: matrix.TARGET_NAME == 'armsr' && steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         event-type: "Openwrt_Packit"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@main
+      if: env.DRY_RUN == 'false'
+      with:
+        delete_workflow_pattern: "matrix"
+        retain_days: 7
+        keep_minimum_runs: 2
