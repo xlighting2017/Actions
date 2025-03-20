@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       openwrt_soc: ${{ steps.generate-matrix.outputs.openwrt_soc }}
-      kernel: ${{ steps.generate-matrix.outputs.kernel }}
+      # kernel: ${{ steps.generate-matrix.outputs.kernel }}
     steps:
       - name: Checkout
         uses: actions/checkout@main
@@ -105,8 +105,9 @@ jobs:
         run: |
           openwrt_soc=$(echo '"${{ env.PACKAGE_SOC }}"' | jq -c '. | split("_") | map(select(length > 0))')
           echo "openwrt_soc=$openwrt_soc" >> $GITHUB_OUTPUT
-          kernel=$(echo '"${{ env.KERNEL_VERSION_NAME }}"' | jq -c '. | split("_") | map(select(length > 0))')
-          echo "kernel=$kernel" >> $GITHUB_OUTPUT
+          # kernel=$(echo '"${{ env.KERNEL_VERSION_NAME }}"' | jq -c '. | split("_") | map(select(length > 0))')
+          # echo "kernel=$kernel" >> $GITHUB_OUTPUT
+          echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
 
   packit:
     runs-on: ubuntu-latest
@@ -116,9 +117,10 @@ jobs:
       max-parallel: 2
       matrix:
         PACKAGE_SOC: ${{fromJSON(needs.prepare.outputs.openwrt_soc)}}
-        KERNEL_VERSION_NAME: ${{fromJSON(needs.prepare.outputs.kernel)}}
+        # KERNEL_VERSION_NAME: ${{fromJSON(needs.prepare.outputs.kernel)}}
     steps:
     - name: Initialization environment
+      if: matrix.PACKAGE_SOC == 'qemu'
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -130,7 +132,8 @@ jobs:
       env:
           OPENWRT_ARMVIRT: https://github.com/xlighting2017/Actions/releases/download/Immortalwrt_armsr/immortalwrt-armsr-armv8-rootfs.tar.gz
           PACKAGE_SOC: "${{ matrix.PACKAGE_SOC }}"
-          KERNEL_VERSION_NAME: "${{ matrix.KERNEL_VERSION_NAME }}"
+          KERNEL_VERSION_NAME: "${{ env.KERNEL_VERSION_NAME }}"
+          # KERNEL_VERSION_NAME: "${{ matrix.KERNEL_VERSION_NAME }}"
   
     - name: Upload packaged firmware to release
       id: upload
@@ -139,16 +142,21 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          tag_name: immortalwrt_${{ matrix.PACKAGE_SOC }}_${{ env.PACKAGED_OUTPUTDATE }}
+          tag_name: immortalwrt_${{ matrix.PACKAGE_SOC }}_v${{ env.FILE_DATE }}
           body: |
             Device(s): ${{ matrix.PACKAGE_SOC }}
+            Kernel version: ${{ env.KERNEL_VERSION_NAME }}
             Default IP: 192.168.199.253
             Default password: NULL
             Luci App installed:
               - amlogic
+              - argon-config
+              - cpufreq
+              - ddns-go
               - frpc
               - mosdns
               - openclash
+              - statistics
               - ttyd
               - vlmcsd(KMS)
           files: ${{ env.PACKAGED_OUTPUTPATH }}/*
