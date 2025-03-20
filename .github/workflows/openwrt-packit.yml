@@ -25,7 +25,7 @@ on:
         default: 's905d_qemu_jp-tvbox'
         type: choice
         options: 
-          - s905d_qemu_jp-tvbox'
+          - s905d_qemu_jp-tvbox
           - vplus
           - cm3
           - jp-tvbox
