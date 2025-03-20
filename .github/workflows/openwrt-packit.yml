@@ -105,6 +105,16 @@ jobs:
           OPENWRT_ARMVIRT: https://github.com/xlighting2017/Actions/releases/download/Immortalwrt_armsr/immortalwrt-armsr-armv8-rootfs.tar.gz
           PACKAGE_SOC: "${{ env.PACKAGE_SOC }}"
           KERNEL_VERSION_NAME: "${{ env.KERNEL_VERSION_NAME }}"
+
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install qemu-utils 
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
   
     - name: Upload packaged firmware to release
       id: upload
