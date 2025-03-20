@@ -22,10 +22,10 @@ on:
       openwrt_soc:
         description: 'PACKAGE_SOC for packit action, default value is s905d(N1) & qemu'
         required: false
-        default: 's905d'
+        default: 's905d_qemu_jp-tvbox'
         type: choice
         options: 
-          - s905d
+          - s905d_qemu
           - vplus
           - cm3
           - jp-tvbox
@@ -80,38 +80,57 @@ on:
           - 6.1.y_6.6.y
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      openwrt_soc: ${{ steps.generate-matrix.outputs.openwrt_soc }}
+      kernel: ${{ steps.generate-matrix.outputs.kernel }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install qemu-utils 
+      
+      - name: Setup Env (on repository_dispatch)
+        if:  github.event_name == 'repository_dispatch'
+        run: |
+          echo "PACKAGE_SOC=s905d_qemu_jp-tvbox" >> "$GITHUB_ENV"
+          echo "KERNEL_VERSION_NAME=6.6.y_6.12.y" >> "$GITHUB_ENV"
+      
+      - name: Setup Env (on workflow_dispatch)
+        if:  github.event_name == 'workflow_dispatch'
+        run: |
+          echo "PACKAGE_SOC=${{ github.event.inputs.openwrt_soc }}" >> "$GITHUB_ENV"
+          echo "KERNEL_VERSION_NAME=${{ github.event.inputs.openwrt_kernel }}" >> "$GITHUB_ENV"
+
+      - id: generate-matrix
+        run: |
+          openwrt_soc=$(echo '"${{ env.PACKAGE_SOC }}"' | jq -c '. | split("_") | map(select(length > 0))')
+          echo "openwrt_soc=$openwrt_soc" >> $GITHUB_OUTPUT
+          kernel=$(echo '"${{ env.KERNEL_VERSION_NAME }}"' | jq -c '. | split(" ") | map(select(length > 0))')
+          echo "kernel=$kernel" >> $GITHUB_OUTPUT
+
   packit:
     runs-on: ubuntu-latest
-
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        PACKAGE_SOC: ${{fromJSON(needs.prepare.outputs.openwrt_soc)}}
+        KERNEL_VERSION_NAME: ${{fromJSON(needs.prepare.outputs.kernel)}}
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
-    
-    - name: Setup Env (on repository_dispatch)
-      if:  github.event_name == 'repository_dispatch'
-      run: |
-        echo "PACKAGE_SOC=s905d" >> "$GITHUB_ENV"
-        echo "KERNEL_VERSION_NAME=6.6.y_6.12.y" >> "$GITHUB_ENV"
-    
-    - name: Setup Env (on workflow_dispatch)
-      if:  github.event_name == 'workflow_dispatch'
-      run: |
-        echo "PACKAGE_SOC=${{ github.event.inputs.openwrt_soc }}" >> "$GITHUB_ENV"
-        echo "KERNEL_VERSION_NAME=${{ github.event.inputs.openwrt_kernel }}" >> "$GITHUB_ENV"
-
-    - name: Initialization environment
-      env:
-        DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo -E apt-get -qq update
-        sudo -E apt-get -qq install qemu-utils 
-    
     - name: Package OpenWrt Firmware
       uses: ophub/flippy-openwrt-actions@main
       env:
           OPENWRT_ARMVIRT: https://github.com/xlighting2017/Actions/releases/download/Immortalwrt_armsr/immortalwrt-armsr-armv8-rootfs.tar.gz
-          PACKAGE_SOC: "${{ env.PACKAGE_SOC }}"
-          KERNEL_VERSION_NAME: "${{ env.KERNEL_VERSION_NAME }}"
+          PACKAGE_SOC: "${{ matrix.PACKAGE_SOC }}"
+          KERNEL_VERSION_NAME: "${{ matrix.KERNEL_VERSION_NAME }}"
   
     - name: Upload packaged firmware to release
       id: upload
@@ -120,9 +139,9 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          tag_name: immortalwrt_${{ env.PACKAGE_SOC }}_${{ env.PACKAGED_OUTPUTDATE }}
+          tag_name: immortalwrt_${{ matrix.PACKAGE_SOC }}_${{ env.PACKAGED_OUTPUTDATE }}
           body: |
-            Device(s): ${{ env.PACKAGE_SOC }}
+            Device(s): ${{ matrix.PACKAGE_SOC }}
             Default IP: 192.168.199.253
             Default password: NULL
             Luci App installed:
@@ -134,19 +153,22 @@ jobs:
               - vlmcsd(KMS)
           files: ${{ env.PACKAGED_OUTPUTPATH }}/*
 
-    - name: Delete workflow runs
-      uses: Mattraks/delete-workflow-runs@main
-      with:
-        delete_workflow_pattern: 'Packit'
-        retain_days: 3
-        keep_minimum_runs: 2
-
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@master
       if: env.PACKAGED_STATUS == 'success' && steps.upload.outputs.id != '' && !cancelled()
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.PACKAGE_SOC }}
+        delete_tag_pattern: ${{ matrix.PACKAGE_SOC }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          delete_workflow_pattern: 'Packit'
+          retain_days: 3
+          keep_minimum_runs: 2
