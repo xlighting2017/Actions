@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       openwrt_soc: ${{ steps.generate-matrix.outputs.openwrt_soc }}
-      # kernel: ${{ steps.generate-matrix.outputs.kernel }}
+      kernel: ${{ steps.generate-matrix.outputs.kernel }}
       date: ${{ steps.generate-matrix.outputs.date }}
     steps:
       - name: Checkout
@@ -108,6 +108,7 @@ jobs:
           echo "openwrt_soc=$openwrt_soc" >> $GITHUB_OUTPUT
           # kernel=$(echo '"${{ env.KERNEL_VERSION_NAME }}"' | jq -c '. | split("_") | map(select(length > 0))')
           # echo "kernel=$kernel" >> $GITHUB_OUTPUT
+          echo "kernel=${{ env.KERNEL_VERSION_NAME }}" >> $GITHUB_OUTPUT
           echo "date=$(date +"%y.%m.%d")" >> $GITHUB_OUTPUT
 
   packit:
@@ -133,7 +134,7 @@ jobs:
       env:
           OPENWRT_ARMVIRT: https://github.com/xlighting2017/Actions/releases/download/Immortalwrt_armsr/immortalwrt-armsr-armv8-rootfs.tar.gz
           PACKAGE_SOC: "${{ matrix.PACKAGE_SOC }}"
-          KERNEL_VERSION_NAME: "${{ env.KERNEL_VERSION_NAME }}"
+          KERNEL_VERSION_NAME: "${{needs.prepare.outputs.kernel}}"
           # KERNEL_VERSION_NAME: "${{ matrix.KERNEL_VERSION_NAME }}"
   
     - name: Upload packaged firmware to release
