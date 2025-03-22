@@ -18,6 +18,20 @@ on:
   workflow_dispatch:
     #  schedule:
     #    - cron: 11 22 * * 5
+    inputs:
+      target:
+        description: 'Target(s) for build action, can be something like "armsr,x86_64"'
+        required: false
+        default: 'all'
+        type: choice
+        options: 
+          - all
+          - armsr
+          - ipq40xx
+          - mediatek
+          - rockchip
+          - sunxi
+          - x86_64
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -33,14 +47,41 @@ env:
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 
-jobs:    
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      targetList: ${{ steps.generate-matrix.outputs.target }}
+    steps:      
+      - name: Setup Env (on repository_dispatch)
+        if:  github.event_name == 'repository_dispatch'
+        run: |
+          echo "target=all" >> "$GITHUB_ENV"
+      
+      - name: Setup Env (on workflow_dispatch)
+        if:  github.event_name == 'workflow_dispatch'
+        run: |
+          echo "target=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
+
+      - id: generate-matrix
+        run: |
+          case ${{ env.target }} in
+            "all")
+              echo "target=$(echo '"armsr,ipq40xx,mediatek,rockchip,sunxi,x86_64"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
   build:
     runs-on: ubuntu-latest
+    needs: prepare
     strategy:
       fail-fast: false
       max-parallel: 3
       matrix:
-        TARGET_NAME: [ipq40xx, rockchip, sunxi, armsr, mediatek, x86_64]
+        TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
     steps:
     - name: Checkout
       uses: actions/checkout@main
