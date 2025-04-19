@@ -22,7 +22,7 @@ on:
       openwrt_soc:
         description: 'PACKAGE_SOC for packit action, default value is s905d(N1) & qemu'
         required: false
-        default: 's905d_qemu_jp-tvbox'
+        default: 's905d'
         type: choice
         options: 
           - s905d_qemu_jp-tvbox
@@ -93,7 +93,7 @@ jobs:
       - name: Setup Env (on repository_dispatch)
         if:  github.event_name == 'repository_dispatch'
         run: |
-          echo "PACKAGE_SOC=s905d_qemu_jp-tvbox" >> "$GITHUB_ENV"
+          echo "PACKAGE_SOC=s905d" >> "$GITHUB_ENV"
           echo "KERNEL_VERSION_NAME=6.6.y_6.12.y" >> "$GITHUB_ENV"
       
       - name: Setup Env (on workflow_dispatch)
