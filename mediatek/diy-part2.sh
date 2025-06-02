@@ -29,6 +29,8 @@ git clone --depth 1 https://github.com/FUjr/modem_feeds -b main package/qmodem
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 
+rm -Rf feeds/packages/kernel/fibocom-qmi-wwan
+
 # update feeds after introduce new package(s)
 ./scripts/feeds update -a
 ./scripts/feeds install -a
