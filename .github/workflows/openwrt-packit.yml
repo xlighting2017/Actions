@@ -104,6 +104,7 @@ jobs:
 
       - id: generate-matrix
         run: |
+          sudo timedatectl set-timezone "Asia/Shanghai"
           openwrt_soc=$(echo '"${{ env.PACKAGE_SOC }}"' | jq -c '. | split("_") | map(select(length > 0))')
           echo "openwrt_soc=$openwrt_soc" >> $GITHUB_OUTPUT
           # kernel=$(echo '"${{ env.KERNEL_VERSION_NAME }}"' | jq -c '. | split("_") | map(select(length > 0))')
