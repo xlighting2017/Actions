@@ -167,9 +167,7 @@ jobs:
       if:  env.DRY_RUN == 'false'
       id: compile
       run: |
-        cd openwrt
-        sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
-        echo -e "$(nproc) thread compile"
+        cd openwrt        echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 V=s
         echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
