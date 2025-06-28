@@ -86,9 +86,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@main
 
-    - name: Free Disk Space (Ubuntu)
+    - name: Free Disk Space (Ubuntu)  (only with certain target(s))
       uses: jlumbroso/free-disk-space@main
-      if: env.FREE_DISK_SPACE == 'true' && (!cancelled())
+      if: ${{ (env.FREE_DISK_SPACE == 'true') || (matrix.TARGET_NAME == 'mediatek') && (!cancelled()) }}
       with:
         # this might remove tools that are actually needed,
         # if set to "true" but frees about 6 GB
