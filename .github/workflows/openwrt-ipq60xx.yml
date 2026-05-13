@@ -20,8 +20,8 @@ on:
   #    - cron: 11 22 * * 5
 
 env:
-  REPO_URL: https://github.com/VIKINGYFY/immortalwrt
-  REPO_BRANCH: main
+  REPO_URL: https://github.com/laipeng668/openwrt-6.x
+  REPO_BRANCH: main-nss
   TARGET_NAME: ipq60xx
   FEEDS_CONF: ipq60xx/feeds.conf
   CONFIG_FILE: ipq60xx/.config
