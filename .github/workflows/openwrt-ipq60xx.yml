@@ -42,20 +42,8 @@ jobs:
       if:  github.event_name == 'repository_dispatch'
       run: |
         # decide REPO/BRANCH based on dispatch event
-        case ${{ github.event.event_type }} in
-          "Source_Code_Update_VIKINGYFY")
-            echo "REPO_URL=https://github.com/VIKINGYFY/immortalwrt" >> "$GITHUB_ENV"
-            echo "REPO_BRANCH=main" >> "$GITHUB_ENV"
-            ;;
-          "Source_Code_Update_laipeng668")
-            echo "REPO_URL=https://github.com/laipeng668/openwrt-6.x" >> "$GITHUB_ENV"
-            echo "REPO_BRANCH=main-nss" >> "$GITHUB_ENV"
-            ;;
-          *)
-            echo "WRONG/UNKNOWN event_type ${{ github.event.event_type }}."
-            exit 1
-            ;;
-        esac
+        echo "REPO_URL=${{ github.event.client_payload.repo.url }}" >> "$GITHUB_ENV"
+        echo "REPO_BRANCH=${{ github.event.client_payload.repo.branch }}" >> "$GITHUB_ENV"
 
     - name: Checkout
       uses: actions/checkout@main

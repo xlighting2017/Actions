@@ -24,38 +24,25 @@ jobs:
       fail-fast: false
       # max-parallel: 3
       matrix:
-        REPO_NAME: [immortalwrt,VIKINGYFY]
+        REPO_NAME: [immortalwrt]
         REPO_PROJECT: [immortalwrt]
+        REPO_BRANCH: [master]
         include:
+          - REPO_NAME: VIKINGYFY
+            REPO_PROJECT: immortalwrt
+            REPO_BRANCH: main
           - REPO_NAME: qosmio
             REPO_PROJECT: openwrt-ipq
+            REPO_BRANCH: main-nss
           - REPO_NAME: laipeng668
             REPO_PROJECT: openwrt-6.x
-
+            REPO_BRANCH: main-nss
     steps:
+
     - name: Get Commit Hash
       id: getHash
       run: |
-        # decide REPO_BRANCH based on REPO_NAME
-        case ${{ matrix.REPO_NAME }} in
-          "immortalwrt")
-            REPO_BRANCH="master"
-            ;;
-          "VIKINGYFY")
-            REPO_BRANCH="main"
-            ;;
-          "laipeng668")
-            REPO_BRANCH="main-nss"
-            ;;
-          "qosmio")
-            REPO_BRANCH="main-nss"
-            ;;
-          *)
-            echo "WRONG/UNKNOWN REPO_NAME ${{ matrix.REPO_NAME }}."
-            exit 1
-            ;;
-        esac
-        git clone --depth 1 https://github.com/${{ matrix.REPO_NAME }}/${{ matrix.REPO_PROJECT }} -b $REPO_BRANCH .
+        git clone --depth 1 https://github.com/${{ matrix.REPO_NAME }}/${{ matrix.REPO_PROJECT }} -b ${{ matrix.REPO_BRANCH }} .
         echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
     - name: Compare Commit Hash
@@ -76,6 +63,13 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         event-type: "Source_Code_Update_${{ matrix.REPO_NAME }}"
+        client-payload: |-
+          {
+            "repo": {
+              "url": "https://github.com/${{ matrix.REPO_NAME }}/${{ matrix.REPO_PROJECT }}",
+              "branch": "${{ matrix.REPO_BRANCH }}",
+            }
+          }
   cleanup:
     runs-on: ubuntu-latest
     needs: check
