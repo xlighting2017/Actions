@@ -29,6 +29,9 @@ jobs:
         include:
           - REPO_NAME: qosmio
             REPO_PROJECT: openwrt-ipq
+          - REPO_NAME: laipeng668
+            REPO_PROJECT: openwrt-6.x
+
     steps:
     - name: Get Commit Hash
       id: getHash
@@ -40,6 +43,9 @@ jobs:
             ;;
           "VIKINGYFY")
             REPO_BRANCH="main"
+            ;;
+          "laipeng668")
+            REPO_BRANCH="main-nss"
             ;;
           "qosmio")
             REPO_BRANCH="main-nss"
