@@ -67,7 +67,7 @@ jobs:
           {
             "repo": {
               "url": "https://github.com/${{ matrix.REPO_NAME }}/${{ matrix.REPO_PROJECT }}",
-              "branch": "${{ matrix.REPO_BRANCH }}",
+              "branch": "${{ matrix.REPO_BRANCH }}"
             }
           }
   cleanup:
