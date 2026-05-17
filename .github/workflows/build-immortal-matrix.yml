@@ -26,12 +26,12 @@ on:
         type: choice
         options: 
           - all
-          - armsr
-          - ipq40xx
           - mediatek
+          - x86_64
           - rockchip
           - sunxi
-          - x86_64
+          - armsr
+          - ipq40xx
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -67,7 +67,7 @@ jobs:
         run: |
           case ${{ env.target }} in
             "all")
-              echo "target=$(echo '"armsr,ipq40xx,mediatek,rockchip,sunxi,x86_64"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              echo "target=$(echo '"mediatek,x86_64,rockchip,sunxi,armsr,ipq40xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
