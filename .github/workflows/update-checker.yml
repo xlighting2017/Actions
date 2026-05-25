@@ -35,8 +35,8 @@ jobs:
             REPO_PROJECT: openwrt-ipq
             REPO_BRANCH: main-nss
           - REPO_NAME: laipeng668
-            REPO_PROJECT: openwrt-6.x
-            REPO_BRANCH: main-nss
+            REPO_PROJECT: immortalwrt
+            REPO_BRANCH: master
     steps:
 
     - name: Get Commit Hash
