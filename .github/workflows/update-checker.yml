@@ -28,15 +28,15 @@ jobs:
         REPO_PROJECT: [immortalwrt]
         REPO_BRANCH: [master]
         include:
-          - REPO_NAME: VIKINGYFY
-            REPO_PROJECT: immortalwrt
-            REPO_BRANCH: main
           - REPO_NAME: qosmio
             REPO_PROJECT: openwrt-ipq
             REPO_BRANCH: main-nss
           - REPO_NAME: laipeng668
             REPO_PROJECT: immortalwrt
             REPO_BRANCH: master
+        #  - REPO_NAME: VIKINGYFY
+        #    REPO_PROJECT: immortalwrt
+        #    REPO_BRANCH: main
     steps:
 
     - name: Get Commit Hash
