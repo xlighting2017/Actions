@@ -34,6 +34,9 @@ jobs:
           - REPO_NAME: laipeng668
             REPO_PROJECT: immortalwrt
             REPO_BRANCH: master
+          - REPO_NAME: laipeng668
+            REPO_PROJECT: openwrt-6.x
+            REPO_BRANCH: main-nss
         #  - REPO_NAME: VIKINGYFY
         #    REPO_PROJECT: immortalwrt
         #    REPO_BRANCH: main
