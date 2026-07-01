@@ -37,6 +37,9 @@ jobs:
           - REPO_NAME: laipeng668
             REPO_PROJECT: openwrt-6.x
             REPO_BRANCH: main-nss
+          - REPO_NAME: JuliusBairaktaris
+            REPO_PROJECT: openwrt-nss-edma
+            REPO_BRANCH: nss-edma-rework
         #  - REPO_NAME: VIKINGYFY
         #    REPO_PROJECT: immortalwrt
         #    REPO_BRANCH: main
