@@ -21,6 +21,7 @@ Personal template for building Openwrt(and other forks/variants) with GitHub Act
 - [GitHub Actions](https://github.com/features/actions)
 - [OpenWrt](https://github.com/openwrt/openwrt)
 - [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt)
+- [JuliusBairaktaris/openwrt-nss-edma,for ipq807x/ipq60xx with NSS on top of EMDA network rework](https://github.com/JuliusBairaktaris/openwrt-nss-edma)
 - [qosmio/openwrt-ipq,for ipq807x/ipq60xx with NSS](https://github.com/qosmio/openwrt-ipq/tree/main-nss)
 - [VIKINGYFY/immortalwrt,for ipq60xx with NSS](https://github.com/VIKINGYFY/immortalwrt)
 - [jlumbroso/free-disk-space](https://github.com/jlumbroso/free-disk-space)
