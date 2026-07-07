@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: Build ipq807x EDMA-NSS
+name: Build QCA EDMA-NSS
 
 on:
   repository_dispatch:
@@ -18,15 +18,24 @@ on:
   workflow_dispatch:
   #  schedule:
   #    - cron: 11 22 * * 5
+    inputs:
+      target:
+        description: 'Target(s) for build action, can be something like "ipq807x,ipq60xx"'
+        required: false
+        default: 'all'
+        type: choice
+        options: 
+          - all
+          - ipq807x
+          - ipq60xx
 
 env:
   REPO_URL: https://github.com/JuliusBairaktaris/openwrt-nss-edma
   REPO_BRANCH: nss-edma-rework
-  TARGET_NAME: ipq807x
-  FEEDS_CONF: ipq807x/edma.feeds.conf
-  CONFIG_FILE: ipq807x/edma.config
-  DIY_P1_SH: ipq807x/diy-part1.sh
-  DIY_P2_SH: ipq807x/diy-part2.sh
+  FEEDS_CONF: edma.feeds.conf
+  CONFIG_FILE: edma.config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -34,8 +43,40 @@ env:
   TZ: Asia/Shanghai
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      targetList: ${{ steps.generate-matrix.outputs.target }}
+    steps:      
+      - name: Setup Env (on repository_dispatch)
+        if:  github.event_name == 'repository_dispatch'
+        run: |
+          echo "target=all" >> "$GITHUB_ENV"
+      
+      - name: Setup Env (on workflow_dispatch)
+        if:  github.event_name == 'workflow_dispatch'
+        run: |
+          echo "target=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
+
+      - id: generate-matrix
+        run: |
+          case ${{ env.target }} in
+            "all")
+              echo "target=$(echo '"ipq807x,ipq60xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
   build:
     runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
 
     steps:
     - name: Checkout
@@ -70,15 +111,15 @@ jobs:
       working-directory: /mnt/workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
         ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
-        chmod +x $DIY_P1_SH
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} openwrt/feeds.conf.default
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P1_SH
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
@@ -88,11 +129,12 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e ipq807x/files.edma-nss ] && mv ipq807x/files.edma-nss openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_P2_SH
+        [ -e ${{ matrix.TARGET_NAME }}/files.edma-nss ] && mv ${{ matrix.TARGET_NAME }}/files.edma-nss openwrt/files
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} openwrt/.config
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+
         grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
         echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
         grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
@@ -128,7 +170,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: OpenWrt_bin_${{ env.TARGET_NAME }}_${{ env.FILE_DATE }}
+        name: OpenWrt_bin_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
         path: openwrt/bin
 
     - name: Organize files
@@ -144,14 +186,14 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: OpenWrt_firmware_${{ env.TARGET_NAME }}_${{ env.FILE_DATE }}
+        name: OpenWrt_firmware_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
     - name: Generate release tag
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=Openwrt_${{ env.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "release_tag=Openwrt_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
@@ -163,7 +205,7 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body: |
-          Target: ${{ env.TARGET_NAME }}
+          Target: ${{ matrix.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
           Default IP: ${{ env.DEVICE_IP }}
           Default password: NULL
@@ -174,7 +216,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: ${{ env.TARGET_NAME }}
+        delete_workflow_pattern: ${{ matrix.TARGET_NAME }}
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -184,6 +226,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.TARGET_NAME }}
+        delete_tag_pattern: ${{ matrix.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
