@@ -135,11 +135,11 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
 
-        grep '^CONFIG_TARGET_DEVICE.*=y' edma.config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
+        grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
         echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
-        grep '^CONFIG_TARGET_PREINIT_IP=' edma.config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
+        grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
         echo "DEVICE_IP=$(cat DEVICE_IP)" >> $GITHUB_ENV
-        grep '^CONFIG_PACKAGE_luci-app.*=y' edma.config | sed -r 's/.*luci-app-(.*)=y/- \1/' | grep -v "[IU]" | sort | uniq > DEVICE_PACKAGES
+        grep '^CONFIG_PACKAGE_luci-app.*=y' .config | sed -r 's/.*luci-app-(.*)=y/- \1/' | grep -v "[IU]" | sort | uniq > DEVICE_PACKAGES
         echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
         echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
