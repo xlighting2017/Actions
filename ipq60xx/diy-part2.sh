@@ -43,7 +43,7 @@ rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/xlighting2017/luci-app-mosdns -b v5 package/mosdns
 
 # add luci-app-athena-led
-git clone --depth 1 https://github.com/unraveloop/JDC-AX6600-Athena-LED-Controller -b main JDC-AX6600-Athena-LED-Controller
+git clone --depth 1 https://github.com/xlighting2017/JDC-AX6600-Athena-LED-Controller -b main JDC-AX6600-Athena-LED-Controller
 cp -R JDC-AX6600-Athena-LED-Controller/athena-led package/
 cp -R JDC-AX6600-Athena-LED-Controller/luci-app-athena-led package/
 
