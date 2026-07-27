@@ -193,7 +193,7 @@ jobs:
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=Openwrt_EDMA_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "release_tag=Openwrt_NSS_EDMA_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
