@@ -163,6 +163,8 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body: |
+          Repo: ${{ env.REPO_URL }}
+          Branch: ${{ env.REPO_BRANCH }}
           Target: ${{ env.TARGET_NAME }}
           Device(s): ${{ env.DEVICE_NAME }}
           Default IP: ${{ env.DEVICE_IP }}
