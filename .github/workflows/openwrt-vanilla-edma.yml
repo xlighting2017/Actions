@@ -1,0 +1,231 @@
+#
+# https://github.com/P3TERX/Actions-OpenWrt
+#
+# File: .github/workflows/openwrt-bulder.yml
+# Description: Build OpenWrt using GitHub Actions
+#
+# Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+
+name: Build Vanilla QCA EDMA
+
+on:
+  repository_dispatch:
+    types: [Source_Code_Update_Openwrt]
+  workflow_dispatch:
+  #  schedule:
+  #    - cron: 11 22 * * 5
+    inputs:
+      target:
+        description: 'Target(s) for build action, can be something like "ipq807x,ipq60xx"'
+        required: false
+        default: 'ipq807x'
+        type: choice
+        options: 
+          - all
+          - ipq807x
+          - ipq60xx
+
+env:
+  REPO_URL: https://github.com/JuliusBairaktaris/openwrt-nss-edma
+  REPO_BRANCH: pr-aqr-10g
+  FEEDS_CONF: vanilla.feeds.conf
+  CONFIG_FILE: vanilla.config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  FREE_DISK_SPACE: false
+  TZ: Asia/Shanghai
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      targetList: ${{ steps.generate-matrix.outputs.target }}
+    steps:      
+      - name: Setup Env (on repository_dispatch)
+        if:  github.event_name == 'repository_dispatch'
+        run: |
+          echo "target=all" >> "$GITHUB_ENV"
+      
+      - name: Setup Env (on workflow_dispatch)
+        if:  github.event_name == 'workflow_dispatch'
+        run: |
+          echo "target=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
+
+      - id: generate-matrix
+        run: |
+          case ${{ env.target }} in
+            "all")
+              echo "target=$(echo '"ipq807x,ipq60xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  build:
+    runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Free Disk Space (Ubuntu)
+      if: env.FREE_DISK_SPACE == 'true' && (!cancelled())
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /mnt/workdir
+        sudo chown $USER:$GROUPS /mnt/workdir
+
+    - name: Clone source code
+      working-directory: /mnt/workdir
+      run: |
+        df -hT $PWD
+        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
+        ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
+    - name: Load custom feeds
+      run: |
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} openwrt/feeds.conf.default
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
+        cd openwrt
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
+
+    - name: Update feeds
+      run: cd openwrt && ./scripts/feeds update -a
+
+    - name: Install feeds
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      run: |
+        [ -e ${{ matrix.TARGET_NAME }}/files.edma-nss ] && mv ${{ matrix.TARGET_NAME }}/files.edma-nss openwrt/files
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} openwrt/.config
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+        cd openwrt
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+
+        grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
+        echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
+        echo "DEVICE_IP=$(cat DEVICE_IP)" >> $GITHUB_ENV
+        grep '^CONFIG_PACKAGE_luci-app.*=y' .config | sed -r 's/.*luci-app-(.*)=y/- \1/' | grep -v "[IU]" | sort | uniq > DEVICE_PACKAGES
+        echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
+        echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Download package
+      id: package
+      run: |
+        cd openwrt
+        make defconfig
+        make download -j$(nproc) V=s
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 V=s
+        echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Upload bin directory as Artifacts
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: OpenWrt_bin_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
+        path: openwrt/bin
+
+    - name: Organize files
+      id: organize
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: Upload firmware directory as Artifacts
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: OpenWrt_firmware_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+
+    - name: Generate release tag
+      id: tag
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=Openwrt_vanilla_EDMA_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "status=success" >> $GITHUB_OUTPUT
+
+    - name: Upload firmware to release
+      id: upload
+      uses: softprops/action-gh-release@master
+      if: steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body: |
+          Target: ${{ matrix.TARGET_NAME }}
+          Device(s): ${{ env.DEVICE_NAME }}
+          Default IP: ${{ env.DEVICE_IP }}
+          Default password: NULL
+          Luci App installed:
+            ${{ env.DEVICE_PACKAGES }}
+        files: ${{ env.FIRMWARE }}/*
+
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@main
+      with:
+        delete_workflow_pattern: ${{ matrix.TARGET_NAME }}
+        retain_days: 3
+        keep_minimum_runs: 2
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@master
+      if: env.UPLOAD_RELEASE == 'true' && steps.upload.outputs.id != '' && !cancelled()
+      with:
+        keep_latest: 2
+        delete_tags: true
+        delete_tag_pattern: ${{ matrix.TARGET_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
