@@ -67,7 +67,7 @@ jobs:
       if:  github.event_name == 'workflow_dispatch'
       run: |
         echo "REPO_URL=${{ github.event.inputs.url }}" >> "$GITHUB_ENV"
-        echo "REPO_BRANCH=${{ github.event.inputs.repo }}" >> "$GITHUB_ENV"
+        echo "REPO_BRANCH=${{ github.event.inputs.branch }}" >> "$GITHUB_ENV"
 
     - name: Checkout
       uses: actions/checkout@main
