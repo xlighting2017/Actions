@@ -18,23 +18,23 @@ on:
   workflow_dispatch:
   #  schedule:
   #    - cron: 11 22 * * 5
-  inputs:
-      url:
-        description: 'Select REPO URL'
-        required: false
-        default: 'https://github.com/laipeng668/LibWrt'
-        type: choice
-        options: 
-          - "https://github.com/laipeng668/immortalwrt"
-          - "https://github.com/laipeng668/LibWrt"
-      branch:
-        description: "Select REPO Branch"
-        required: false
-        default: "main-nss"
-        type: choice
-        options:
-          - "master"
-          - "main-nss"
+    inputs:
+        url:
+          description: 'Select REPO URL'
+          required: false
+          default: 'https://github.com/laipeng668/LibWrt'
+          type: choice
+          options: 
+            - "https://github.com/laipeng668/immortalwrt"
+            - "https://github.com/laipeng668/LibWrt"
+        branch:
+          description: "Select REPO Branch"
+          required: false
+          default: "main-nss"
+          type: choice
+          options:
+            - "master"
+            - "main-nss"
 
 
 env:
