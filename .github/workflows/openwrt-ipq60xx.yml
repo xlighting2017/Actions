@@ -207,7 +207,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: ${{ env.TARGET_NAME }}
+        delete_workflow_pattern: ${{ env.TARGET_NAME }}|laipeng668
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -217,6 +217,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.TARGET_NAME }}
+        delete_tag_pattern: Openwrt_${{ env.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
