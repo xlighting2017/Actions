@@ -218,7 +218,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: ${{ matrix.TARGET_NAME }}
+        delete_workflow_pattern: EDMA-NSS
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -228,6 +228,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ matrix.TARGET_NAME }}
+        delete_tag_pattern: NSS_EDMA
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
