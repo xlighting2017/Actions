@@ -18,6 +18,24 @@ on:
   workflow_dispatch:
   #  schedule:
   #    - cron: 11 22 * * 5
+  inputs:
+      url:
+        description: 'Select REPO URL'
+        required: false
+        default: 'https://github.com/laipeng668/LibWrt'
+        type: choice
+        options: 
+          - "https://github.com/laipeng668/immortalwrt"
+          - "https://github.com/laipeng668/LibWrt"
+      branch:
+        description: "Select REPO Branch"
+        required: false
+        default: "main-nss"
+        type: choice
+        options:
+          - "master"
+          - "main-nss"
+
 
 env:
   REPO_URL: https://github.com/laipeng668/immortalwrt
@@ -37,13 +55,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-    - name: Decide which repo (on repository_dispatch)
+    steps:      
+    - name: Setup Env (on repository_dispatch)
       if:  github.event_name == 'repository_dispatch'
       run: |
         # decide REPO/BRANCH based on dispatch event
         echo "REPO_URL=${{ github.event.client_payload.repo.url }}" >> "$GITHUB_ENV"
         echo "REPO_BRANCH=${{ github.event.client_payload.repo.branch }}" >> "$GITHUB_ENV"
+    
+    - name: Setup Env (on workflow_dispatch)
+      if:  github.event_name == 'workflow_dispatch'
+      run: |
+        echo "REPO_URL=${{ github.event.inputs.url }}" >> "$GITHUB_ENV"
+        echo "REPO_BRANCH=${{ github.event.inputs.repo }}" >> "$GITHUB_ENV"
 
     - name: Checkout
       uses: actions/checkout@main
