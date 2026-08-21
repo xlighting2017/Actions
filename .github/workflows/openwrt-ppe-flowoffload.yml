@@ -10,11 +10,11 @@
 # See /LICENSE for more information.
 #
 
-name: Build Vanilla QCA EDMA
+name: Build QCA-PPE-flowoffload
 
 on:
   repository_dispatch:
-    types: [Source_Code_Update_Openwrt]
+    types: [Source_Code_Update_JuliusBairaktaris]
   workflow_dispatch:
   #  schedule:
   #    - cron: 11 22 * * 5
@@ -31,9 +31,9 @@ on:
 
 env:
   REPO_URL: https://github.com/JuliusBairaktaris/openwrt-nss-edma
-  REPO_BRANCH: pr-aqr-10g
-  FEEDS_CONF: vanilla.feeds.conf
-  CONFIG_FILE: vanilla.config
+  REPO_BRANCH: ppe-flow-offload
+  FEEDS_CONF: ppe.feeds.conf
+  CONFIG_FILE: ppe.config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -193,7 +193,7 @@ jobs:
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=Openwrt_vanilla_EDMA_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "release_tag=Openwrt_qca_ppe_flowoffload_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
@@ -218,7 +218,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: vanilla
+        delete_workflow_pattern: ppe-flowoffload
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -228,6 +228,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: vanilla_EDMA
+        delete_tag_pattern: qca_ppe_flowoffload
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
