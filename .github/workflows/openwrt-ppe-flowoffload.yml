@@ -31,7 +31,7 @@ on:
 
 env:
   REPO_URL: https://github.com/JuliusBairaktaris/openwrt-nss-edma
-  REPO_BRANCH: ppe-flow-offload
+  REPO_BRANCH: ppe-nss
   FEEDS_CONF: ppe.feeds.conf
   CONFIG_FILE: ppe.config
   DIY_P1_SH: diy-part1.sh
