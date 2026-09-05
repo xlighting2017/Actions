@@ -64,7 +64,7 @@ on:
       openwrt_kernel:
         description: "Select kernel version"
         required: false
-        default: "6.6.y_6.12.y"
+        default: "6.18.y_6.12.y"
         type: choice
         options:
           - 6.6.y_6.12.y
