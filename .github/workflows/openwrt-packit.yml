@@ -87,7 +87,7 @@ jobs:
         if:  github.event_name == 'repository_dispatch'
         run: |
           echo "PACKAGE_SOC=s905d" >> "$GITHUB_ENV"
-          echo "KERNEL_VERSION_NAME=6.6.y_6.12.y" >> "$GITHUB_ENV"
+          echo "KERNEL_VERSION_NAME=6.18.y_6.12.y" >> "$GITHUB_ENV"
       
       - name: Setup Env (on workflow_dispatch)
         if:  github.event_name == 'workflow_dispatch'
