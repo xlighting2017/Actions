@@ -30,11 +30,11 @@ on:
         branch:
           description: "Select REPO Branch"
           required: false
-          default: "main-nss"
+          default: "25.12-nss"
           type: choice
           options:
-            - "master"
-            - "main-nss"
+            - "openwrt-25.12"
+            - "25.12-nss"
 
 
 env:
