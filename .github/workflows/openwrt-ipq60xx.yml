@@ -22,17 +22,19 @@ on:
         url:
           description: 'Select REPO URL'
           required: false
-          default: 'https://github.com/laipeng668/LibWrt'
+          default: "https://github.com/VIKINGYFY/immortalwrt"
           type: choice
           options: 
+            - "https://github.com/VIKINGYFY/immortalwrt"
             - "https://github.com/laipeng668/immortalwrt"
             - "https://github.com/laipeng668/LibWrt"
         branch:
           description: "Select REPO Branch"
           required: false
-          default: "25.12-nss"
+          default: "main"
           type: choice
           options:
+            - "main"
             - "openwrt-25.12"
             - "25.12-nss"
 
