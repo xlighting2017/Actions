@@ -186,6 +186,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.TARGET_NAME }}
+        delete_tag_pattern: Openwrt_${{ env.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

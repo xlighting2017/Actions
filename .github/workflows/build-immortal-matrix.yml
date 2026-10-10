@@ -273,9 +273,9 @@ jobs:
       uses: dev-drprasad/delete-older-releases@master
       if: env.DRY_RUN == 'false' && steps.upload.outputs.id != '' && !cancelled()
       with:
-        keep_latest: 3
+        keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ matrix.TARGET_NAME }}
+        delete_tag_pattern: Immortalwrt_${{ matrix.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     

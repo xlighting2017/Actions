@@ -261,6 +261,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: NSS_EDMA
+        delete_tag_pattern: NSS_EDMA_${{ matrix.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
