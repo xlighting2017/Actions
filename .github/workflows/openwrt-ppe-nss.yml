@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: Build QCA-PPE-flowoffload
+name: Build QCA-PPE-NSS
 
 on:
   repository_dispatch:
@@ -30,7 +30,7 @@ on:
           - ipq60xx
 
 env:
-  REPO_URL: https://github.com/JuliusBairaktaris/openwrt-nss-edma
+  REPO_URL: https://github.com/JuliusBairaktaris/openwrt-ppe-nss
   REPO_BRANCH: ppe-nss
   FEEDS_CONF: ppe.feeds.conf
   CONFIG_FILE: ppe.config
@@ -226,7 +226,7 @@ jobs:
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=Openwrt_qca_ppe_flowoffload_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "release_tag=Openwrt_qca_ppe_nss_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
@@ -251,7 +251,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: ppe-flowoffload
+        delete_workflow_pattern: ppe-nss
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -261,6 +261,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: qca_ppe_flowoffload_${{ matrix.TARGET_NAME }}
+        delete_tag_pattern: qca_ppe_nss_${{ matrix.TARGET_NAME }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
