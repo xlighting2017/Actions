@@ -13,8 +13,8 @@
 name: Build QCA EDMA-NSS
 
 on:
-  repository_dispatch:
-    types: [Source_Code_Update_JuliusBairaktaris]
+  # repository_dispatch:
+  #   types: [Source_Code_Update_JuliusBairaktaris]
   workflow_dispatch:
   #  schedule:
   #    - cron: 11 22 * * 5
