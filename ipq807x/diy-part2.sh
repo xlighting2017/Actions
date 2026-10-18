@@ -44,10 +44,6 @@ cd ..
 rm -Rf feeds/packages/net/mosdns
 git clone --depth 1 https://github.com/sbwml/luci-app-mosdns -b v5 package/mosdns
 
-# use JuliusBairaktaris/sqm-scripts -b hw-ppe-offload
-rm -Rf feeds/packages/net/sqm-scripts
-
-
 # update feeds after introduce new package(s)
 ./scripts/feeds update -a
 ./scripts/feeds install -a
