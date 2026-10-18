@@ -129,7 +129,7 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e ${{ matrix.TARGET_NAME }}/files.edma-nss ] && mv ${{ matrix.TARGET_NAME }}/files.edma-nss openwrt/files
+        [ -e ${{ matrix.TARGET_NAME }}/files.ppe-nss ] && mv ${{ matrix.TARGET_NAME }}/files.ppe-nss openwrt/files
         [ -e ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} openwrt/.config
         chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
         cd openwrt
