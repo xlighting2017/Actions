@@ -36,7 +36,7 @@ env:
   VARIANT: ppe-nss
   FEEDS: |
     src-git nss https://github.com/JuliusBairaktaris/nss-packages.git;ppe-nss
-    src-git luci https://github.com/JuliusBairaktaris/luci.git;luci-app-ppe-qos
+    src-git luci-app-ppe-qos https://github.com/JuliusBairaktaris/luci.git;luci-app-ppe-qos
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
