@@ -87,6 +87,7 @@ if [[ -n "${{ env.DIY_P2_SH }}" ]]; then
   else
     log::die "${{ env.DIY_P2_SH }} not found."
   fi
+fi
 
 log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
