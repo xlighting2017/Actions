@@ -73,6 +73,7 @@ if [[ -n "$FEEDS" ]]; then
       sed -i -E "/^src-\S+[[:space:]]+${feed_name}[[:space:]]/d" feeds.conf
       echo "$line" >>feeds.conf
     fi
+    cat feeds.conf
     # Update + install each custom feed individually so failures are obvious.
     log::info "Updating feed: $feed_name"
     ./scripts/feeds update "$feed_name"
