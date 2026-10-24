@@ -41,7 +41,7 @@ env:
   TZ: Asia/Shanghai
   FEEDS: |
     src-git nss https://github.com/JuliusBairaktaris/nss-packages.git;ppe-nss
-    src-git luci-app-ppe-qos https://github.com/JuliusBairaktaris/luci.git;luci-app-ppe-qos
+    src-git luci_app_ppe_qos https://github.com/JuliusBairaktaris/luci.git;luci-app-ppe-qos
 
 jobs:
   prepare:
