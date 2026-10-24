@@ -84,7 +84,7 @@ fi
 if [[ -n "$DIY_SCRIPT" ]]; then
   log::info "Load custom configuration($DIY_SCRIPT)"
   if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT" ]]; then
-    bash $BUILDER_REPO/qualcommax/$DIY_SCRIPT
+    bash $BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT
   else
     log::die "$DIY_SCRIPT not found."
   fi
