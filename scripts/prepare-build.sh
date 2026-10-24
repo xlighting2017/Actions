@@ -34,6 +34,7 @@ FEEDS="${FEEDS:-}"
 COMMON_DIR="$BUILDER_REPO/qualcommax/${COMMON:-common}"
 DEVICE_DIR="$BUILDER_REPO/qualcommax/$DEVICE"
 CONFIG_FRAGMENT="${CONFIG_FRAGMENT:-}"
+DIY_SCRIPT="${DIY_P2_SH:-}"
 
 [[ -f "$DEVICE_DIR/.config" ]] || log::die "$DEVICE_DIR/.config not found"
 [[ -f "$COMMON_DIR/.config" ]] || log::die "$COMMON_DIR/.config not found"
@@ -80,12 +81,12 @@ if [[ -n "$FEEDS" ]]; then
 fi
 
 # 1a. DIY script part 2 (After Update feeds)
-if [[ -n "${{ env.DIY_P2_SH }}" ]]; then
-  log::info "Load custom configuration(${{ env.DIY_P2_SH }})"
-  if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/${{ env.DIY_P2_SH }}" ]]; then
-    bash $BUILDER_REPO/qualcommax/${{ env.DIY_P2_SH }}
+if [[ -n "$DIY_SCRIPT" ]]; then
+  log::info "Load custom configuration($DIY_SCRIPT)"
+  if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT" ]]; then
+    bash $BUILDER_REPO/qualcommax/$DIY_SCRIPT
   else
-    log::die "${{ env.DIY_P2_SH }} not found."
+    log::die "$DIY_SCRIPT not found."
   fi
 fi
 
