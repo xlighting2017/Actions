@@ -30,7 +30,7 @@ on:
           - ipq60xx
 
 env:
-  REPO_URL: https://github.com/JuliusBairaktaris/openwrt-ppe-nss
+  REPO_URL: JuliusBairaktaris/openwrt-ppe-nss
   REPO_BRANCH: ppe-nss
   DIY_P2_SH: diy-part2.sh
   VARIANT: ppe-nss
