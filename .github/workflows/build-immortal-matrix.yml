@@ -36,10 +36,9 @@ on:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf
-  CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
+  VARIANT: ''
   DRY_RUN: false
   FREE_DISK_SPACE: false
   UPLOAD_BIN_DIR: false
@@ -82,10 +81,11 @@ jobs:
       max-parallel: 3
       matrix:
         TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@main
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TARGET: ${{ matrix.TARGET_NAME }}
 
+    steps:
     - name: Free Disk Space (Ubuntu)  (only with certain target(s))
       uses: jlumbroso/free-disk-space@main
       if: ${{ (env.FREE_DISK_SPACE == 'true') || (matrix.TARGET_NAME == 'mediatek') || (matrix.TARGET_NAME == 'x86_64') && (!cancelled()) }}
@@ -109,41 +109,28 @@ jobs:
       run: |
         sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
         sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /mnt/workdir
-        sudo chown $USER:$GROUPS /mnt/workdir
-
-    - name: Clone source code
-      if:  env.DRY_RUN == 'false'
-      working-directory: /mnt/workdir
-      run: |
         df -hT $PWD
-        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
-        ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-    - name: Load custom feeds
-      if:  env.DRY_RUN == 'false'
+    - name: Checkout OpenWrt source
+      uses: actions/checkout@main
+      with:
+        repository: ${{ env.REPO_URL }}
+        ref: ${{ env.REPO_BRANCH }}
+        fetch-depth: 0
+        path: openwrt
+    
+    - name: Checkout builder repo
+      uses: actions/checkout@main
+      with:
+        path: builder
+
+    - name: Prepare build environment
+      env:
+        OPENWRT_DIR: ${{ github.workspace }}/openwrt
+        BUILDER_REPO: ${{ github.workspace }}/builder
       run: |
-        [ -e ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} openwrt/feeds.conf.default
-        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
-        cd openwrt
-        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
-
-    - name: Update feeds
-      if:  env.DRY_RUN == 'false'
-      run: cd openwrt && ./scripts/feeds update -a
-
-    - name: Install feeds
-      if:  env.DRY_RUN == 'false'
-      run: cd openwrt && ./scripts/feeds install -a
-
-    - name: Load custom configuration
-      if:  env.DRY_RUN == 'false'
-      run: |
-        [ -e ${{ matrix.TARGET_NAME }}/files ] && mv ${{ matrix.TARGET_NAME }}/files openwrt/files
-        [ -e ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} openwrt/.config
-        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
-        cd openwrt
-        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+        bash builder/scripts/prepare-build-imm.sh
+        cd ${{ env.OPENWRT_DIR }}
         grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
         echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
         grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
@@ -152,7 +139,6 @@ jobs:
         echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
         echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-        make defconfig
 
     # The OpenWrt source mirrors can stall, and a git source
     # cannot fall back to a fresh clone: its PKG_MIRROR_HASH covers the zstd
