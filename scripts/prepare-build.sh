@@ -101,6 +101,10 @@ if [[ -n "$DIY_SCRIPT_2" ]]; then
   fi
 fi
 
+log::info "Updating + installing all feeds"
+./scripts/feeds update -a
+./scripts/feeds install -a
+
 # 1b. Apply local patches to feed packages
 #     (patches/feeds/<variant>/<feed>/*.patch, paths relative to the feed
 #     root), so a patch rides only the flavour it is for.
@@ -129,10 +133,6 @@ for p in "$BUILDER_REPO/qualcommax/patches/tree/$VARIANT"/*.patch; do
   fi
 done
 shopt -u nullglob
-
-log::info "Updating + installing all feeds"
-./scripts/feeds update -a
-./scripts/feeds install -a
 
 # 2. Assemble .config from the common + device configs, then resolve.
 log::info "Assembling .config from ${CONFIGS[*]#"$BUILDER_REPO"/}"
