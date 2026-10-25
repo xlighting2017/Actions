@@ -34,7 +34,8 @@ FEEDS="${FEEDS:-}"
 COMMON_DIR="$BUILDER_REPO/qualcommax/${COMMON:-common}"
 DEVICE_DIR="$BUILDER_REPO/qualcommax/$DEVICE"
 CONFIG_FRAGMENT="${CONFIG_FRAGMENT:-}"
-DIY_SCRIPT="${DIY_P2_SH:-}"
+DIY_SCRIPT_1="${DIY_P1_SH:-}"
+DIY_SCRIPT_2="${DIY_P2_SH:-}"
 
 [[ -f "$DEVICE_DIR/.config" ]] || log::die "$DEVICE_DIR/.config not found"
 [[ -f "$COMMON_DIR/.config" ]] || log::die "$COMMON_DIR/.config not found"
@@ -48,6 +49,16 @@ if [[ -n "$CONFIG_FRAGMENT" ]]; then
 fi
 
 cd "$OPENWRT_DIR"
+
+# 0a. DIY script part 1 (Before Update feeds)
+if [[ -n "$DIY_SCRIPT_1" ]]; then
+  log::info "Load custom configuration($DIY_SCRIPT_1)"
+  if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT_1" ]]; then
+    bash $BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT_1
+  else
+    log::die "$DIY_SCRIPT_1 not found."
+  fi
+fi
 
 # 1. Configure feeds. 
 # use the feeds.conf in target folder, or the default in openwrt folder
@@ -81,18 +92,14 @@ if [[ -n "$FEEDS" ]]; then
 fi
 
 # 1a. DIY script part 2 (After Update feeds)
-if [[ -n "$DIY_SCRIPT" ]]; then
-  log::info "Load custom configuration($DIY_SCRIPT)"
-  if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT" ]]; then
-    bash $BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT
+if [[ -n "$DIY_SCRIPT_2" ]]; then
+  log::info "Load custom configuration($DIY_SCRIPT_2)"
+  if [[ -f "$BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT_2" ]]; then
+    bash $BUILDER_REPO/qualcommax/$DEVICE/$DIY_SCRIPT_2
   else
-    log::die "$DIY_SCRIPT not found."
+    log::die "$DIY_SCRIPT_2 not found."
   fi
 fi
-
-log::info "Updating + installing all feeds"
-./scripts/feeds update -a
-./scripts/feeds install -a
 
 # 1b. Apply local patches to feed packages
 #     (patches/feeds/<variant>/<feed>/*.patch, paths relative to the feed
@@ -123,6 +130,9 @@ for p in "$BUILDER_REPO/qualcommax/patches/tree/$VARIANT"/*.patch; do
 done
 shopt -u nullglob
 
+log::info "Updating + installing all feeds"
+./scripts/feeds update -a
+./scripts/feeds install -a
 
 # 2. Assemble .config from the common + device configs, then resolve.
 log::info "Assembling .config from ${CONFIGS[*]#"$BUILDER_REPO"/}"
