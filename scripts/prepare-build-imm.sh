@@ -139,7 +139,7 @@ log::info "Assembling .config from ${CONFIGS[*]#"$BUILDER_REPO"/}"
 cat "${CONFIGS[@]}" >.config
 make defconfig
 
-# 2b. Verify defconfig honoured the device config. Kconfig silently drops a
+# 2b. Verify defconfig honoured the target config. Kconfig silently drops a
 #     requested symbol whose dependencies are unmet, which is how images have
 #     shipped without pinned options before (ccache, ramoops, the NSS firmware
 #     version) - a build that quietly leaves a package out is worse than one
@@ -155,7 +155,7 @@ done < <(cat "${CONFIGS[@]}" |
   grep -vE '=n$')
 
 if ((${#dropped[@]})); then
-  log::error "defconfig dropped ${#dropped[@]} requested symbol(s) for device '$DEVICE':"
+  log::error "defconfig dropped ${#dropped[@]} requested symbol(s) for target '$TARGET':"
   printf '  %s\n' "${dropped[@]}" >&2
   log::die "add the missing dependency or remove the line - do not ship a silently reduced image"
 fi
@@ -187,4 +187,4 @@ for src in "$COMMON_DIR/files" "$COMMON_DIR/files.$VARIANT" \
 done
 
 
-log::info "Build environment ready for variant '$VARIANT' on device '$DEVICE'."
+log::info "Build environment ready for variant '$VARIANT' on target '$TARGET'."
