@@ -1,0 +1,310 @@
+#
+# https://github.com/P3TERX/Actions-OpenWrt
+#
+# File: .github/workflows/openwrt-bulder.yml
+# Description: Build OpenWrt using GitHub Actions
+#
+# Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+
+name: Build immortalwrt matrix
+
+on:
+  repository_dispatch:
+    types: [Source_Code_Update_immortalwrt]
+  workflow_dispatch:
+    #  schedule:
+    #    - cron: 11 22 * * 5
+    inputs:
+      target:
+        description: 'Target(s) for build action, can be something like "armsr,x86_64"'
+        required: false
+        default: 'all'
+        type: choice
+        options: 
+          - all
+          - mediatek
+          - x86_64
+          - rockchip
+          - sunxi
+          - armsr
+          - ipq40xx
+
+env:
+  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: master
+  FEEDS_CONF: feeds.conf
+  CONFIG_FILE: .config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  DRY_RUN: false
+  FREE_DISK_SPACE: false
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  TZ: Asia/Shanghai
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      targetList: ${{ steps.generate-matrix.outputs.target }}
+    steps:      
+      - name: Setup Env (on repository_dispatch)
+        if:  github.event_name == 'repository_dispatch'
+        run: |
+          echo "target=all" >> "$GITHUB_ENV"
+      
+      - name: Setup Env (on workflow_dispatch)
+        if:  github.event_name == 'workflow_dispatch'
+        run: |
+          echo "target=${{ github.event.inputs.target }}" >> "$GITHUB_ENV"
+      - id: generate-matrix
+        run: |
+          case ${{ env.target }} in
+            "all")
+              echo "target=$(echo '"mediatek,x86_64,rockchip,sunxi,armsr,ipq40xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              ;;
+          esac
+  build:
+    runs-on: ubuntu-latest
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Free Disk Space (Ubuntu)  (only with certain target(s))
+      uses: jlumbroso/free-disk-space@main
+      if: ${{ (env.FREE_DISK_SPACE == 'true') || (matrix.TARGET_NAME == 'mediatek') || (matrix.TARGET_NAME == 'x86_64') && (!cancelled()) }}
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Initialization environment
+      if:  env.DRY_RUN == 'false'
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /mnt/workdir
+        sudo chown $USER:$GROUPS /mnt/workdir
+    - name: Clone source code
+      if:  env.DRY_RUN == 'false'
+      working-directory: /mnt/workdir
+      run: |
+        df -hT $PWD
+        git clone ${{ env.REPO_URL }} -b ${{ env.REPO_BRANCH }} openwrt
+        ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
+    - name: Load custom feeds
+      if:  env.DRY_RUN == 'false'
+      run: |
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.FEEDS_CONF }} openwrt/feeds.conf.default
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
+        cd openwrt
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P1_SH }}
+    - name: Update feeds
+      if:  env.DRY_RUN == 'false'
+      run: cd openwrt && ./scripts/feeds update -a
+
+    - name: Install feeds
+      if:  env.DRY_RUN == 'false'
+      run: cd openwrt && ./scripts/feeds install -a
+
+    - name: Load custom configuration
+      if:  env.DRY_RUN == 'false'
+      run: |
+        [ -e ${{ matrix.TARGET_NAME }}/files ] && mv ${{ matrix.TARGET_NAME }}/files openwrt/files
+        [ -e ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} ] && mv ${{ matrix.TARGET_NAME }}/${{ env.CONFIG_FILE }} openwrt/.config
+        chmod +x ${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+        cd openwrt
+        $GITHUB_WORKSPACE/${{ matrix.TARGET_NAME }}/${{ env.DIY_P2_SH }}
+        grep '^CONFIG_TARGET_DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' | awk -v d=" / " '{s=(NR==1?s:s d)$0}END{print s}' > DEVICE_NAME
+        echo "DEVICE_NAME=$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        grep '^CONFIG_TARGET_PREINIT_IP=' .config | sed -r 's/.*PREINIT_IP="(.*)"/\1/' > DEVICE_IP
+        echo "DEVICE_IP=$(cat DEVICE_IP)" >> $GITHUB_ENV
+        grep '^CONFIG_PACKAGE_luci-app.*=y' .config | sed -r 's/.*luci-app-(.*)=y/- \1/' | grep -v "[IU]" | sort | uniq > DEVICE_PACKAGES
+        echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
+        echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        make defconfig
+
+        echo "$(cat .config)"
+    # The OpenWrt source mirrors can stall, and a git source
+    # cannot fall back to a fresh clone: its PKG_MIRROR_HASH covers the zstd
+    # stream, which changes with the zstd version. Verified downloads are kept
+    # between runs; download.pl deletes any that no longer match their hash.
+    # Old source versions accumulate; deleting the dl- entries starts over.
+    - name: Restore sources
+      uses: actions/cache/restore@v6
+      with:
+        path: openwrt/dl
+        key: dl-${{ github.run_id }}
+        restore-keys: dl-
+
+    - name: Download sources
+      id: download
+      working-directory: openwrt
+      run: |
+        set -euo pipefail
+        mkdir -p dl
+        before=$(find dl -maxdepth 1 -type f | wc -l)
+        for attempt in 1 2 3; do
+          make download -j"$(nproc)" V=s && break
+          echo "Download attempt $attempt failed; retrying..."
+          sleep 5
+        done
+        echo "grew=$(($(find dl -maxdepth 1 -type f | wc -l) > before))" >>"$GITHUB_OUTPUT"
+    # One entry per run that fetched something new: the first job to get here
+    # saves, the others find the key taken. Each job restores the newest
+    # entry, so it grows to the union of every group's sources.
+    - name: Save sources
+      if: steps.download.outputs.grew == 1
+      uses: actions/cache/save@v6
+      with:
+        path: openwrt/dl
+        key: dl-${{ github.run_id }}
+
+    # ccache hashes neither the assembler nor cc1, so the key covers every
+    # toolchain input and a change there starts from an empty cache. GitHub
+    # drops entries unused for 7 days and evicts the oldest over the quota.
+    - name: Compute ccache key
+      id: ccache
+      run: |
+        set -euo pipefail
+        tree=$(git -C openwrt rev-parse HEAD:toolchain)
+        sum=$({
+          echo "$tree"
+          grep -E '^CONFIG_(BINUTILS|GCC|LIBC|MUSL|GLIBC)_' openwrt/.config
+          gcc --version; as --version
+        } | sha256sum | cut -c1-16)
+        echo "prefix=ccache-imm-${{ matrix.TARGET_NAME }}-$sum-" >>"$GITHUB_OUTPUT"
+    - name: Restore ccache
+      uses: actions/cache@v6
+      with:
+        path: openwrt/.ccache
+        key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
+        restore-keys: ${{ steps.ccache.outputs.prefix }}
+
+    - name: Compile the firmware
+      if:  env.DRY_RUN == 'false'
+      id: compile
+      env:
+        CCACHE_COMPILERCHECK: content
+        CCACHE_MAXSIZE: 4G
+      run: |
+        cd openwrt
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 V=s
+        echo "FILE_DATE=$(date +"%y.%m.%d")" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        staging_dir/host/bin/ccache -s
+    - name: Check space usage
+      if: env.DRY_RUN == 'false' && (!cancelled())
+      run: df -hT
+
+    - name: Upload bin directory as Artifacts
+      uses: actions/upload-artifact@main
+      if: env.DRY_RUN == 'false' && steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: Immortalwrt_bin_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
+        path: openwrt/bin
+
+    - name: Organize files
+      id: organize
+      if: env.DRY_RUN == 'false' && steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd openwrt/bin/targets/*/*
+        rm -rf packages
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+    - name: Upload firmware directory as Artifacts
+      uses: actions/upload-artifact@main
+      if: env.DRY_RUN == 'false' && steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: Immortalwrt_firmware_${{ matrix.TARGET_NAME }}_${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+
+    - name: Generate release tag
+      id: tag
+      if: env.DRY_RUN == 'false' && steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        case ${{ matrix.TARGET_NAME }} in
+          "armsr")
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}" >> $GITHUB_OUTPUT
+            ;;
+          "x86_64")
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "release_tag=Immortalwrt_${{ matrix.TARGET_NAME }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+            ;;
+        esac
+        echo "status=success" >> $GITHUB_OUTPUT
+    - name: Upload firmware to release
+      id: upload
+      uses: softprops/action-gh-release@master
+      if: env.DRY_RUN == 'false' && steps.tag.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body: |
+          Repo: ${{ env.REPO_URL }}
+          Branch: ${{ env.REPO_BRANCH }}
+          Target: ${{ matrix.TARGET_NAME }}
+          Device(s): ${{ env.DEVICE_NAME }}
+          Default IP: ${{ env.DEVICE_IP }}
+          Default password: NULL
+          Luci App installed:
+            ${{ env.DEVICE_PACKAGES }}
+        files: ${{ env.FIRMWARE }}/*
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@master
+      if: env.DRY_RUN == 'false' && steps.upload.outputs.id != '' && !cancelled()
+      with:
+        keep_latest: 2
+        delete_tags: true
+        delete_tag_pattern: Immortalwrt_${{ matrix.TARGET_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Trigger Pack_it (only when target == armsr)
+      uses: peter-evans/repository-dispatch@v2
+      if: matrix.TARGET_NAME == 'armsr' && steps.upload.outputs.id != '' && !cancelled()
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        event-type: "Openwrt_Packit"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Delete workflow runs
+      uses: Mattraks/delete-workflow-runs@main
+      if: env.DRY_RUN == 'false'
+      with:
+        delete_workflow_pattern: "matrix"
+        retain_days: 3
+        keep_minimum_runs: 2
