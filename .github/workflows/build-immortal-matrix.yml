@@ -149,6 +149,8 @@ jobs:
         echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
         echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
+        make defconfig
+        echo "$(cat .config)"
 
     # The OpenWrt source mirrors can stall, and a git source
     # cannot fall back to a fresh clone: its PKG_MIRROR_HASH covers the zstd
@@ -201,12 +203,12 @@ jobs:
         } | sha256sum | cut -c1-16)
         echo "prefix=ccache-imm-${{ matrix.TARGET_NAME }}-$sum-" >>"$GITHUB_OUTPUT"
 
-    - name: Restore ccache
-      uses: actions/cache@v6
-      with:
-        path: openwrt/.ccache
-        key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
-        restore-keys: ${{ steps.ccache.outputs.prefix }}
+    #- name: Restore ccache
+    #  uses: actions/cache@v6
+    #  with:
+    #    path: openwrt/.ccache
+    #    key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
+    #    restore-keys: ${{ steps.ccache.outputs.prefix }}
 
     - name: Compile the firmware
       if:  env.DRY_RUN == 'false'
