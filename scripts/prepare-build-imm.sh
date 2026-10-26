@@ -49,17 +49,6 @@ if [[ -n "$CONFIG_FRAGMENT" ]]; then
 fi
 
 cd "$OPENWRT_DIR"
-
-# 0a. DIY script part 1 (Before Update feeds)
-if [[ -n "$DIY_SCRIPT_1" ]]; then
-  log::info "Load custom configuration($DIY_SCRIPT_1)"
-  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1" ]]; then
-    bash $BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1
-  else
-    log::die "$DIY_SCRIPT_1 not found."
-  fi
-fi
-
 # 1. Configure feeds. 
 # use the feeds.conf in target folder, or the default in openwrt folder
 if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/feeds.conf" ]]; then
@@ -91,7 +80,21 @@ if [[ -n "$FEEDS" ]]; then
   done <<<"$FEEDS"
 fi
 
-# 1a. DIY script part 2 (After Update feeds)
+# DIY script part 1 (Before Update feeds)
+if [[ -n "$DIY_SCRIPT_1" ]]; then
+  log::info "Load custom configuration($DIY_SCRIPT_1)"
+  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1" ]]; then
+    bash $BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1
+  else
+    log::die "$DIY_SCRIPT_1 not found."
+  fi
+fi
+
+log::info "Updating + installing all feeds"
+./scripts/feeds update -a
+./scripts/feeds install -a
+
+# DIY script part 2 (After Update feeds)
 if [[ -n "$DIY_SCRIPT_2" ]]; then
   log::info "Load custom configuration($DIY_SCRIPT_2)"
   if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_2" ]]; then
@@ -101,7 +104,7 @@ if [[ -n "$DIY_SCRIPT_2" ]]; then
   fi
 fi
 
-log::info "Updating + installing all feeds"
+log::info "Updating + installing all feeds, again."
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
