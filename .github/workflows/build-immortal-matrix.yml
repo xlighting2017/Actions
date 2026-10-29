@@ -109,8 +109,6 @@ jobs:
       run: |
         sudo bash -c 'bash <(curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh)'
         sudo timedatectl set-timezone "$TZ"
-        sudo mkdir -p /mnt/workdir
-        sudo chown $USER:$GROUPS /mnt/workdir
         df -hT $PWD
 
     - name: Checkout OpenWrt source
@@ -119,7 +117,7 @@ jobs:
         repository: ${{ env.REPO_URL }}
         ref: ${{ env.REPO_BRANCH }}
         fetch-depth: 0
-        path: /mnt/workdir/openwrt
+        path: openwrt
     
     - name: Checkout builder repo
       uses: actions/checkout@main
