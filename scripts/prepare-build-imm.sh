@@ -159,7 +159,7 @@ done < <(cat "${CONFIGS[@]}" |
   grep -vE '=n$')
 
 if ((${#dropped[@]})); then
-  log::error "defconfig dropped ${#dropped[@]} requested symbol(s) for target '$TARGET':"
+  log::error "defconfig dropped ${#dropped[@]} requested symbol(s) for target '$TARGET_TO_BUILD':"
   printf '  %s\n' "${dropped[@]}" >&2
   log::die "add the missing dependency or remove the line - do not ship a silently reduced image"
 fi
