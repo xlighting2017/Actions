@@ -191,12 +191,12 @@ jobs:
         } | sha256sum | cut -c1-16)
         echo "prefix=ccache-imm-${{ matrix.TARGET_NAME }}-$sum-" >>"$GITHUB_OUTPUT"
 
-    #- name: Restore ccache
-    #  uses: actions/cache@v6
-    #  with:
-    #    path: openwrt/.ccache
-    #    key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
-    #    restore-keys: ${{ steps.ccache.outputs.prefix }}
+    - name: Restore ccache
+      uses: actions/cache@v6
+      with:
+        path: openwrt/.ccache
+        key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
+        restore-keys: ${{ steps.ccache.outputs.prefix }}
 
     - name: Compile the firmware
       if:  env.DRY_RUN == 'false'
