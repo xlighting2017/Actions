@@ -82,7 +82,7 @@ jobs:
         TARGET_NAME: ${{fromJSON(needs.prepare.outputs.targetList)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      TARGET: ${{ matrix.TARGET_NAME }}
+      TARGET_TO_BUILD: ${{ matrix.TARGET_NAME }}
       VARIANT: 'main'
 
     steps:

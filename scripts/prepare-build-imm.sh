@@ -10,7 +10,7 @@
 # Required env:
 #   OPENWRT_DIR   path to the checked-out OpenWrt source (a git work tree)
 #   BUILDER_REPO  path to this repo
-#   TARGET        target id (selects immortalwrt/<target>)
+#   TARGET_TO_BUILD target id (selects immortalwrt/<target>)
 #   VARIANT       variant id (selects immortalwrt/<target>/files.<variant> \
 #                 and patches/{feed/tree}/<variant>/*/*.patch)
 #
@@ -27,12 +27,12 @@ source "$(dirname -- "$0")/lib/log.sh"
 
 : "${OPENWRT_DIR:?OPENWRT_DIR required}"
 : "${BUILDER_REPO:?BUILDER_REPO required}"
-: "${TARGET:?TARGET required}"
+: "${TARGET_TO_BUILD:?TARGET_TO_BUILD required}"
 : "${VARIANT:?VARIANT required}"
 
 FEEDS="${FEEDS:-}"
 COMMON_DIR="$BUILDER_REPO/immortalwrt/${COMMON:-common}"
-TARGET_DIR="$BUILDER_REPO/immortalwrt/$TARGET"
+TARGET_DIR="$BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD"
 CONFIG_FRAGMENT="${CONFIG_FRAGMENT:-}"
 DIY_SCRIPT_1="${DIY_P1_SH:-}"
 DIY_SCRIPT_2="${DIY_P2_SH:-}"
@@ -51,8 +51,8 @@ fi
 cd "$OPENWRT_DIR"
 # 1. Configure feeds. 
 # use the feeds.conf in target folder, or the default in openwrt folder
-if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/feeds.conf" ]]; then
-  cp $BUILDER_REPO/immortalwrt/$TARGET/feeds.conf feeds.conf
+if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/feeds.conf" ]]; then
+  cp $BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/feeds.conf feeds.conf
 else
   cp feeds.conf.default feeds.conf
 fi
@@ -83,8 +83,8 @@ fi
 # DIY script part 1 (Before Update feeds)
 if [[ -n "$DIY_SCRIPT_1" ]]; then
   log::info "Load custom configuration($DIY_SCRIPT_1)"
-  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1" ]]; then
-    bash $BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_1
+  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/$DIY_SCRIPT_1" ]]; then
+    bash $BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/$DIY_SCRIPT_1
   else
     log::die "$DIY_SCRIPT_1 not found."
   fi
@@ -97,8 +97,8 @@ log::info "Updating + installing all feeds"
 # DIY script part 2 (After Update feeds)
 if [[ -n "$DIY_SCRIPT_2" ]]; then
   log::info "Load custom configuration($DIY_SCRIPT_2)"
-  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_2" ]]; then
-    bash $BUILDER_REPO/immortalwrt/$TARGET/$DIY_SCRIPT_2
+  if [[ -f "$BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/$DIY_SCRIPT_2" ]]; then
+    bash $BUILDER_REPO/immortalwrt/$TARGET_TO_BUILD/$DIY_SCRIPT_2
   else
     log::die "$DIY_SCRIPT_2 not found."
   fi
@@ -189,4 +189,4 @@ for src in "$COMMON_DIR/files" "$COMMON_DIR/files.$VARIANT" \
 done
 
 
-log::info "Build environment ready for variant '$VARIANT' on target '$TARGET'."
+log::info "Build environment ready for variant '$VARIANT' on target '$TARGET_TO_BUILD'."
