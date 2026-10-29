@@ -113,21 +113,13 @@ jobs:
         sudo chown $USER:$GROUPS /mnt/workdir
         df -hT $PWD
 
-    - name: Clone source code
-      if:  env.DRY_RUN == 'false'
-      working-directory: /mnt/workdir
-      run: |
-        df -hT $PWD
-        git clone "https://github.com/${{ env.REPO_URL }}" -b ${{ env.REPO_BRANCH }} openwrt
-        ln -sf /mnt/workdir/openwrt $GITHUB_WORKSPACE/openwrt
-
-#    - name: Checkout OpenWrt source
-#      uses: actions/checkout@main
-#      with:
-#        repository: ${{ env.REPO_URL }}
-#        ref: ${{ env.REPO_BRANCH }}
-#        fetch-depth: 0
-#        path: /mnt/workdir/openwrt
+    - name: Checkout OpenWrt source
+      uses: actions/checkout@main
+      with:
+        repository: ${{ env.REPO_URL }}
+        ref: ${{ env.REPO_BRANCH }}
+        fetch-depth: 0
+        path: /mnt/workdir/openwrt
     
     - name: Checkout builder repo
       uses: actions/checkout@main
@@ -149,8 +141,6 @@ jobs:
         echo "DEVICE_PACKAGES<<EOF" >> $GITHUB_ENV
         echo "$(cat DEVICE_PACKAGES)" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
-        make defconfig
-        echo "$(cat .config)"
 
     # The OpenWrt source mirrors can stall, and a git source
     # cannot fall back to a fresh clone: its PKG_MIRROR_HASH covers the zstd

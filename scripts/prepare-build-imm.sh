@@ -140,6 +140,8 @@ shopt -u nullglob
 # 2. Assemble .config from the common + device configs, then resolve.
 log::info "Assembling .config from ${CONFIGS[*]#"$BUILDER_REPO"/}"
 cat "${CONFIGS[@]}" >.config
+make defconfig
+# echo "$(cat .config)"
 
 # 2b. Verify defconfig honoured the target config. Kconfig silently drops a
 #     requested symbol whose dependencies are unmet, which is how images have
