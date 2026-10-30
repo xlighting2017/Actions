@@ -13,8 +13,8 @@
 name: Build immortalwrt matrix
 
 on:
-  repository_dispatch:
-    types: [Source_Code_Update_immortalwrt]
+  # repository_dispatch:
+  #  types: [Source_Code_Update_immortalwrt]
   workflow_dispatch:
     #  schedule:
     #    - cron: 11 22 * * 5
