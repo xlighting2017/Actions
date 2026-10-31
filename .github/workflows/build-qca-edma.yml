@@ -48,6 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deviceList: ${{ steps.generate-matrix.outputs.device }}
+      variant: ${{ env.VARIANT }}
     steps:      
       - name: Setup Env (on repository_dispatch)
         if:  github.event_name == 'repository_dispatch'
@@ -71,7 +72,7 @@ jobs:
           esac
 
   build:
-    name: Build ${{ matrix.device }} (${{ env.VARIANT }})
+    name: Build ${{ matrix.device }} (${{ matrix.variant }})
     runs-on: ubuntu-latest
     needs: prepare
     strategy:
@@ -79,10 +80,11 @@ jobs:
       max-parallel: 3
       matrix:
         device: ${{fromJSON(needs.prepare.outputs.deviceList)}}
+        variant: ${{fromJSON(needs.prepare.outputs.variant)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      COMMON: "common.${{ env.VARIANT }}"
-      DEVICE: "${{ matrix.device }}.${{ env.VARIANT }}"
+      COMMON: common.${{ matrix.variant }}
+      DEVICE: ${{ matrix.device }}.${{ matrix.variant }}
 
     steps:
     - name: Free Disk Space (Ubuntu)
