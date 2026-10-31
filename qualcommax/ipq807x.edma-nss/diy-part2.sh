@@ -27,12 +27,14 @@ cd immortalwrt
 git sparse-checkout set "package/emortal/autocore" "package/emortal/cpufreq" \
 "package/emortal/default-settings" "package/utils/mhz" \
 "package/utils/px5g-openssl" \
+"package/libs/libffi" \
 "target/linux/generic/hack-6.18/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch"
 git checkout
 # copy to package for further use
 cp -R package/emortal/* ../package/
 cp -R package/utils/mhz ../package/
 cp -R package/utils/px5g-openssl ../package/
+cp -R package/libs/libffi ../package/
 cp "target/linux/generic/hack-6.18/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch" \
 "../target/linux/generic/hack-6.18/312-arm64-cpuinfo-Add-model-name-in-proc-cpuinfo-for-64bit-ta.patch"
 cd ..
