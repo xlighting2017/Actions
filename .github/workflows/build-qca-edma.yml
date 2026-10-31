@@ -80,7 +80,7 @@ jobs:
       max-parallel: 3
       matrix:
         device: ${{fromJSON(needs.prepare.outputs.deviceList)}}
-        variant: ${{fromJSON(needs.prepare.outputs.variant)}}
+        variant: ${{needs.prepare.outputs.variant}}
     env:
       GH_TOKEN: ${{ github.token }}
       COMMON: common.${{ matrix.variant }}
