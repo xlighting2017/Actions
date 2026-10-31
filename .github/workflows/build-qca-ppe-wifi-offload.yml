@@ -30,7 +30,7 @@ on:
           - ipq60xx
 
 env:
-  REPO_URL: https://github.com/JuliusBairaktaris/openwrt-ppe-nss
+  REPO_URL: JuliusBairaktaris/openwrt-ppe-nss
   REPO_BRANCH: ppe-wifi-offload
   VARIANT: ppe-wifi-offload
   DIY_P1_SH: diy-part1.sh
