@@ -22,7 +22,7 @@ on:
       device:
         description: 'Device(s) for build action, can be something like "ipq807x,ipq60xx"'
         required: false
-        default: 'ipq807x'
+        default: 'all'
         type: choice
         options: 
           - all
