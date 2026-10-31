@@ -19,8 +19,8 @@ on:
   #  schedule:
   #    - cron: 11 22 * * 5
     inputs:
-      target:
-        description: 'Target(s) for build action, can be something like "ipq807x,ipq60xx"'
+      device:
+        description: 'Device(s) for build action, can be something like "ipq807x,ipq60xx"'
         required: false
         default: 'all'
         type: choice
