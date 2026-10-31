@@ -71,6 +71,7 @@ jobs:
           esac
 
   build:
+    name: Build ${{ matrix.device }} (${{ env.VARIANT }})
     runs-on: ubuntu-latest
     needs: prepare
     strategy:
@@ -80,8 +81,8 @@ jobs:
         device: ${{fromJSON(needs.prepare.outputs.deviceList)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      COMMON: common.${{ env.VARIANT }}
-      DEVICE: ${{ matrix.device }}.${{ env.VARIANT }}
+      COMMON: "common.${{ env.VARIANT }}"
+      DEVICE: "${{ matrix.device }}.${{ env.VARIANT }}"
 
     steps:
     - name: Free Disk Space (Ubuntu)
