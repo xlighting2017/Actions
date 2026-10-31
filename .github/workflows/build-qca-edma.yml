@@ -80,8 +80,8 @@ jobs:
         device: ${{fromJSON(needs.prepare.outputs.deviceList)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      COMMON: common.${{ VARIANT }}
-      DEVICE: ${{ matrix.device }}.${{ VARIANT }}
+      COMMON: common.${{ env.VARIANT }}
+      DEVICE: ${{ matrix.device }}.${{ env.VARIANT }}
 
     steps:
     - name: Free Disk Space (Ubuntu)
