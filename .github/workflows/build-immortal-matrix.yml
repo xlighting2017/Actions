@@ -43,6 +43,7 @@ env:
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
+  SAVE_RESTORE_DL: false
   TZ: Asia/Shanghai
 
 jobs:
@@ -146,6 +147,7 @@ jobs:
     # between runs; download.pl deletes any that no longer match their hash.
     # Old source versions accumulate; deleting the dl- entries starts over.
     - name: Restore sources
+      if: env.SAVE_RESTORE_DL == 'true'
       uses: actions/cache/restore@v6
       with:
         path: openwrt/dl
@@ -170,7 +172,7 @@ jobs:
     # saves, the others find the key taken. Each job restores the newest
     # entry, so it grows to the union of every group's sources.
     - name: Save sources
-      if: steps.download.outputs.grew == 1
+      if: steps.download.outputs.grew == 1 && env.SAVE_RESTORE_DL == 'true'
       uses: actions/cache/save@v6
       with:
         path: openwrt/dl
