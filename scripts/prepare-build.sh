@@ -37,15 +37,24 @@ CONFIG_FRAGMENT="${CONFIG_FRAGMENT:-}"
 DIY_SCRIPT_1="${DIY_P1_SH:-}"
 DIY_SCRIPT_2="${DIY_P2_SH:-}"
 
-[[ -f "$DEVICE_DIR/.config" ]] || log::die "$DEVICE_DIR/.config not found"
 [[ -f "$COMMON_DIR/.config" ]] || log::die "$COMMON_DIR/.config not found"
+[[ -f "$DEVICE_DIR/.config" ]] || log::die "$DEVICE_DIR/.config not found"
 
 # Least to most specific; the last file wins on a symbol set in several.
-CONFIGS=("$COMMON_DIR/.config" "$DEVICE_DIR/.config")
+CONFIGS=("$COMMON_DIR/.config")
+if [[ -f "$COMMON_DIR/$VARIANT.config" ]]; then
+  log::info "Appending $VARIANT common config: $COMMON_DIR/$VARIANT.config"
+  CONFIGS+=("$COMMON_DIR/$VARIANT.config")
+fi
+CONFIGS+=("$DEVICE_DIR/.config")
+if [[ -f "$DEVICE_DIR/$VARIANT.config" ]]; then
+  log::info "Appending $VARIANT device config: $DEVICE_DIR/$VARIANT.config"
+  CONFIGS+=("$DEVICE_DIR/$VARIANT.config")
+fi
 if [[ -n "$CONFIG_FRAGMENT" ]]; then
-  [[ -f "$BUILDER_REPO/$CONFIG_FRAGMENT" ]] ||
-    log::die "CONFIG_FRAGMENT $CONFIG_FRAGMENT not found in $BUILDER_REPO"
-  CONFIGS+=("$BUILDER_REPO/$CONFIG_FRAGMENT")
+  [[ -f "$BUILDER_REPO/qualcommax/$CONFIG_FRAGMENT" ]] ||
+    log::die "CONFIG_FRAGMENT $CONFIG_FRAGMENT not found in $BUILDER_REPO/qualcommax/"
+  CONFIGS+=("$BUILDER_REPO/qualcommax/$CONFIG_FRAGMENT")
 fi
 
 cd "$OPENWRT_DIR"

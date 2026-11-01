@@ -84,8 +84,9 @@ jobs:
         variant: ${{fromJSON(needs.prepare.outputs.variant)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      COMMON: common.${{ matrix.variant }}
-      DEVICE: ${{ matrix.device }}.${{ matrix.variant }}
+      COMMON: common
+      DEVICE: ${{ matrix.device }}
+      VARIANT: ${{ matrix.variant }}
 
     steps:
     - name: Free Disk Space (Ubuntu)
@@ -190,7 +191,7 @@ jobs:
           grep -E '^CONFIG_(BINUTILS|GCC|LIBC|MUSL|GLIBC)_' openwrt/.config
           gcc --version; as --version
         } | sha256sum | cut -c1-16)
-        echo "prefix=ccache-${{ env.DEVICE }}-$sum-" >>"$GITHUB_OUTPUT"
+        echo "prefix=ccache-${{ env.DEVICE }}-${{ env.VARIANT }}-$sum-" >>"$GITHUB_OUTPUT"
 
     - name: Restore ccache
       uses: actions/cache@v6
@@ -220,7 +221,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: OpenWrt_bin_${{ env.DEVICE }}_${{ env.FILE_DATE }}
+        name: OpenWrt_bin_${{ env.DEVICE }}_${{ env.VARIANT }}_${{ env.FILE_DATE }}
         path: openwrt/bin
 
     - name: Organize files
@@ -236,14 +237,14 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: OpenWrt_firmware_${{ env.DEVICE }}_${{ env.FILE_DATE }}
+        name: OpenWrt_firmware_${{ env.DEVICE }}_${{ env.VARIANT }}_${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
     - name: Generate release tag
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=Openwrt_${{ env.DEVICE }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
+        echo "release_tag=Openwrt_${{ env.DEVICE }}_${{ env.VARIANT }}_v${{ env.FILE_DATE }}" >> $GITHUB_OUTPUT
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
@@ -268,7 +269,7 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@main
       with:
-        delete_workflow_pattern: prepare-build
+        delete_workflow_pattern: EDMA-NSS
         retain_days: 3
         keep_minimum_runs: 2
 
@@ -278,6 +279,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.DEVICE }}
+        delete_tag_pattern: ${{ env.DEVICE }}_${{ env.VARIANT }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

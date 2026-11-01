@@ -84,8 +84,9 @@ jobs:
         variant: ${{fromJSON(needs.prepare.outputs.variant)}}
     env:
       GH_TOKEN: ${{ github.token }}
-      COMMON: common.${{ matrix.variant }}
+      COMMON: common
       DEVICE: ${{ matrix.device }}
+      VARIANT: ${{ matrix.variant }}
 
     steps:
     - name: Free Disk Space (Ubuntu)
@@ -278,6 +279,6 @@ jobs:
       with:
         keep_latest: 2
         delete_tags: true
-        delete_tag_pattern: ${{ env.DEVICE }}.${{ env.VARIANT }}
+        delete_tag_pattern: ${{ env.DEVICE }}_${{ env.VARIANT }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
