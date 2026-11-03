@@ -38,6 +38,7 @@ env:
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
   FREE_DISK_SPACE: false
+  SAVE_RESTORE_DL: true
   TZ: Asia/Shanghai
   FEEDS: |
     src-git nss https://github.com/JuliusBairaktaris/nss-packages.git;ppe-nss

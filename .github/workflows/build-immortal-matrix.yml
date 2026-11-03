@@ -28,9 +28,9 @@ on:
           - all
           - mediatek
           - x86_64
+          - armsr
           - rockchip
           - sunxi
-          - armsr
           - ipq40xx
 
 env:
@@ -43,7 +43,7 @@ env:
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
-  SAVE_RESTORE_DL: false
+  SAVE_RESTORE_DL: true
   TZ: Asia/Shanghai
 
 jobs:
@@ -66,7 +66,7 @@ jobs:
         run: |
           case ${{ env.target }} in
             "all")
-              echo "target=$(echo '"mediatek,x86_64,rockchip,sunxi,armsr,ipq40xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              echo "target=$(echo '"mediatek,x86_64,armsr"' | jq -c '. | split(",") 
               ;;
             *)
               echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
