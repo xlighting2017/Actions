@@ -48,7 +48,7 @@ env:
 
 jobs:
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       targetList: ${{ steps.generate-matrix.outputs.target }}
     steps:      
@@ -74,7 +74,7 @@ jobs:
           esac
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: prepare
     strategy:
       fail-fast: false
@@ -295,7 +295,7 @@ jobs:
         event-type: "Openwrt_Packit"
 
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
     - name: Delete workflow runs
