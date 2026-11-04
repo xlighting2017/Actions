@@ -57,8 +57,8 @@ git checkout
 cp -R applications/luci-app-qca-ppe-qos ../feeds/luci/applications/
 cd ..
 
-# add more themes
-git clone https://github.com/itsmaiGe/luci-theme-7dollar.git feeds/luci/themes/luci-theme-7dollar
-git clone --depth 1 https://github.com/anothaDev/luci-theme-vantage luci-theme-vantage
-cp -R luci-theme-vantage/luci-theme-vantage feeds/luci/themes/
-cp -R luci-theme-vantage/luci-app-vantage feeds/luci/applications/
+# # add more themes
+# git clone https://github.com/itsmaiGe/luci-theme-7dollar.git feeds/luci/themes/luci-theme-7dollar
+# git clone --depth 1 https://github.com/anothaDev/luci-theme-vantage luci-theme-vantage
+# cp -R luci-theme-vantage/luci-theme-vantage feeds/luci/themes/
+# cp -R luci-theme-vantage/luci-app-vantage feeds/luci/applications/
