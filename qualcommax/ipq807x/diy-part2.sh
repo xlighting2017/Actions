@@ -53,6 +53,6 @@ cd ..
 
 # add more themes
 git clone https://github.com/itsmaiGe/luci-theme-7dollar.git feeds/luci/themes/luci-theme-7dollar
-git clone --no-checkout --depth 1 https://github.com/anothaDev/luci-theme-vantage luci-themes-vantage
+git clone --depth 1 https://github.com/anothaDev/luci-theme-vantage luci-themes-vantage
 cp -R luci-themes-vantage/luci-themes-vantage feeds/luci/themes/
 cp -R luci-themes-vantage/luci-app-vantage feeds/luci/applications/
