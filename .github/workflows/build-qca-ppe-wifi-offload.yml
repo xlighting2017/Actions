@@ -41,7 +41,6 @@ env:
   FREE_DISK_SPACE: false
   TZ: Asia/Shanghai
   FEEDS: |
-    src-git luci_ppe_qos https://github.com/JuliusBairaktaris/luci.git;luci-app-ppe-qos
 
 jobs:
   prepare:

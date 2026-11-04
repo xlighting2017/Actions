@@ -46,3 +46,13 @@ rm -Rf package/emortal/luci-app-athena-led
 git clone --depth 1 https://github.com/xlighting2017/JDC-AX6600-Athena-LED-Controller -b main JDC-AX6600-Athena-LED-Controller
 cp -R JDC-AX6600-Athena-LED-Controller/athena-led package/
 cp -R JDC-AX6600-Athena-LED-Controller/luci-app-athena-led package/
+
+# add luci-app-qca-ppe-qos
+git clone --no-checkout --depth 1 https://github.com/immortalwrt/luci-app-ppe-qos -b luci-app-ppe-qos luci-app-ppe-qos
+cd luci-app-ppe-qos
+# sparse-checkout only certail packages
+git sparse-checkout set "applications/luci-app-qca-ppe-qos"
+git checkout
+# copy to package for further use
+cp -R applications/luci-app-qca-ppe-qos ../feeds/luci/applications/
+cd ..
