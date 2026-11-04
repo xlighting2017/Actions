@@ -66,7 +66,7 @@ jobs:
         run: |
           case ${{ env.target }} in
             "all")
-              echo "target=$(echo '"mediatek,x86_64,armsr"' | jq -c '. | split(",") 
+              echo "target=$(echo '"mediatek,x86_64,armsr"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
