@@ -1,0 +1,39 @@
+The ipq60xx eMMC boards (jdcloud re-cs-02, re-cs-07, re-ss-01 and link
+nn6000 v1/v2) mount their overlay from an F2FS volume in a loop device
+that starts right after the squashfs on the rootfs partition, so every
+sysupgrade rewrites the partition the system is running from.
+
+do_stage2 only moves the configuration archive to flash when
+platform_copy_config() is defined. ipq60xx never defined it, so the
+archive stayed in tmpfs, disappeared when the system went down for the
+upgrade, and the new overlay was formatted from scratch - "keep
+configuration" was silently ignored and the device came up with factory
+defaults.
+
+emmc_copy_config() in lib/upgrade/emmc.sh already does the right thing
+(writes the archive right after the newly written rootfs, where fstools
+looks for its gzip header on the next boot), and ipq807x wires it up the
+same way. Add the missing hook for the eMMC devices.
+
+Tested on JDCloud RE-CS-02 (ipq6010): after this change, sysupgrade with
+"keep configuration" restores /etc on the next boot.
+
+Signed-off-by: Zang Baiyue <zcracker@163.com>
+--- /target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
++++ /target/linux/qualcommax/ipq60xx/base-files/lib/upgrade/platform.sh
+@@ -307,3 +307,15 @@
+ 		;;
+ 	esac
+ }
++
++platform_copy_config() {
++	case "$(board_name)" in
++	jdcloud,re-cs-02|\
++	jdcloud,re-cs-07|\
++	jdcloud,re-ss-01|\
++	link,nn6000-v1|\
++	link,nn6000-v2)
++		emmc_copy_config
++		;;
++	esac
++}
