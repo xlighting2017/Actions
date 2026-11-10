@@ -22,7 +22,7 @@ on:
       target:
         description: 'Target(s) for build action, can be something like "armsr,x86_64"'
         required: false
-        default: 'all'
+        default: 'mediatek,x86_64,armsr'
         type: choice
         options: 
           - all
@@ -56,7 +56,7 @@ jobs:
       - name: Setup Env (on repository_dispatch)
         if:  github.event_name == 'repository_dispatch'
         run: |
-          echo "target=all" >> "$GITHUB_ENV"
+          echo "target=mediatek,x86_64,armsr" >> "$GITHUB_ENV"
       
       - name: Setup Env (on workflow_dispatch)
         if:  github.event_name == 'workflow_dispatch'
@@ -67,7 +67,7 @@ jobs:
         run: |
           case ${{ env.target }} in
             "all")
-              echo "target=$(echo '"mediatek,x86_64,armsr"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
+              echo "target=$(echo '"mediatek,x86_64,rockchip,armsr,sunxi,ipq40xx"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "target=$(echo '"${{ env.target }}"' | jq -c '. | split(",") | map(if type=="string" then gsub("^\\s+|\\s+$";"") else . end)')" >> $GITHUB_OUTPUT
