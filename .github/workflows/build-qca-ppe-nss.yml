@@ -177,6 +177,8 @@ jobs:
     # we may end up in creating multiple cache saves
     - name: Purge sources cache
       if: steps.restore-source.outputs.cache-hit == 'false'
+      with:
+        path: builder
       run: |
           echo "Fetching list of sources cache keys"
           cacheKeysForPR=$(gh cache list --key 'dl-' --json id --jq '.[].id')
@@ -226,6 +228,8 @@ jobs:
     # Purge ccache after restore, and only keep the latest one
     - name: Purge ccache
       if: steps.restore-ccache.outputs.cache-hit == 'false'
+      with:
+        path: builder
       run: |
           echo "Fetching list of ccache keys"
           cacheKeysForPR=$(gh cache list --key ${{ steps.ccache.outputs.prefix }} --json id --jq '.[].id')
