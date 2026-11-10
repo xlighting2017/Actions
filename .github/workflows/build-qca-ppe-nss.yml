@@ -180,12 +180,12 @@ jobs:
       working-directory: builder
       run: |
           echo "Fetching list of sources cache keys"
-          cacheKeysForPR=$(gh cache list --key 'dl-' --json id --jq '.[].id')
+          cacheKeys=$(gh cache list --key 'dl-' --json id --jq '.[].id')
 
           ## Setting this to not fail the workflow while deleting cache keys.
           set +e
           echo "Deleting caches for dl-..."
-          for cacheKey in $cacheKeysForPR
+          for cacheKey in $cacheKeys
           do
               gh cache delete $cacheKey
           done
@@ -194,7 +194,7 @@ jobs:
     # One entry per run that fetched something new: the first job to get here
     # saves, the others find the key taken. Each job restores the newest
     # entry, so it grows to the union of every group's sources.
-    - name: Save sources
+    - name: Save sources cache
       if: steps.download.outputs.grew == 1 && env.SAVE_RESTORE_DL == 'true'
       uses: actions/cache/save@v6
       with:
@@ -204,7 +204,7 @@ jobs:
     # ccache hashes neither the assembler nor cc1, so the key covers every
     # toolchain input and a change there starts from an empty cache. GitHub
     # drops entries unused for 7 days and evicts the oldest over the quota.
-    - name: Compute ccache key
+    - name: Compute Ccache key
       id: ccache
       run: |
         set -euo pipefail
@@ -216,7 +216,7 @@ jobs:
         } | sha256sum | cut -c1-16)
         echo "prefix=ccache-${{ env.DEVICE }}-${{ env.VARIANT }}-$sum-" >>"$GITHUB_OUTPUT"
 
-    - name: Restore ccache
+    - name: Restore Ccache
       id: restore-ccache
       uses: actions/cache@v6
       with:
@@ -225,17 +225,17 @@ jobs:
         restore-keys: ${{ steps.ccache.outputs.prefix }}
 
     # Purge ccache after restore, and only keep the latest one
-    - name: Purge ccache
+    - name: Purge Ccache
       if: steps.restore-ccache.outputs.cache-hit == 'false'
       working-directory: builder
       run: |
-          echo "Fetching list of ccache keys"
-          cacheKeysForPR=$(gh cache list --key ${{ steps.ccache.outputs.prefix }} --json id --jq '.[].id')
+          echo "Fetching list of Ccache keys"
+          cacheKeys=$(gh cache list --key ${{ steps.ccache.outputs.prefix }} --json id --jq '.[].id')
 
           ## Setting this to not fail the workflow while deleting cache keys.
           set +e
           echo "Deleting caches for ${{ steps.ccache.outputs.prefix }}..."
-          for cacheKey in $cacheKeysForPR
+          for cacheKey in $cacheKeys
           do
               gh cache delete $cacheKey
           done
