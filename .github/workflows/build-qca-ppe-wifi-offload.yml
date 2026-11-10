@@ -223,23 +223,6 @@ jobs:
         key: ${{ steps.ccache.outputs.prefix }}${{ github.run_id }}
         restore-keys: ${{ steps.ccache.outputs.prefix }}
 
-    # Purge ccache after restore, and only keep the latest one
-    - name: Purge Ccache
-      if: steps.restore-ccache.outputs.cache-hit == 'false'
-      working-directory: builder
-      run: |
-          echo "Fetching list of Ccache keys"
-          cacheKeys=$(gh cache list --key ${{ steps.ccache.outputs.prefix }} --json id --jq '.[].id')
-
-          ## Setting this to not fail the workflow while deleting cache keys.
-          set +e
-          echo "Deleting caches for ${{ steps.ccache.outputs.prefix }}..."
-          for cacheKey in $cacheKeys
-          do
-              gh cache delete $cacheKey
-          done
-          echo "Done"
-
     - name: Compile the firmware
       id: compile
       env:
@@ -322,3 +305,20 @@ jobs:
         delete_tag_pattern: ${{ env.DEVICE }}_${{ env.VARIANT }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Purge Ccache after all done, to only keep the latest one
+    - name: Purge Ccache
+      if: steps.compile.outputs.status == 'success' && !cancelled()
+      working-directory: builder
+      run: |
+          echo "Fetching list of Ccache keys"
+          cacheKeys=$(gh cache list --key ccache-${{ env.DEVICE }}-${{ env.VARIANT }} --json id --jq '.[].id')
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches for ccache-${{ env.DEVICE }}-${{ env.VARIANT }}..."
+          for cacheKey in $cacheKeys
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Done"
