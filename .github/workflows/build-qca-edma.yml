@@ -148,7 +148,8 @@ jobs:
     # stream, which changes with the zstd version. Verified downloads are kept
     # between runs; download.pl deletes any that no longer match their hash.
     # Old source versions accumulate; deleting the dl- entries starts over.
-    - name: Restore sources
+    - name: Restore sources cache
+      id: restore-source
       if: env.SAVE_RESTORE_DL == 'true'
       uses: actions/cache/restore@v6
       with:
@@ -170,20 +171,10 @@ jobs:
         done
         echo "grew=$(($(find dl -maxdepth 1 -type f | wc -l) > before))" >>"$GITHUB_OUTPUT"
 
-    # One entry per run that fetched something new: the first job to get here
-    # saves, the others find the key taken. Each job restores the newest
-    # entry, so it grows to the union of every group's sources.
-    - name: Save sources
-      if: steps.download.outputs.grew == 1 && env.SAVE_RESTORE_DL == 'true'
-      uses: actions/cache/save@v6
-      with:
-        path: openwrt/dl
-        key: dl-${{ github.run_id }}
-
     # ccache hashes neither the assembler nor cc1, so the key covers every
     # toolchain input and a change there starts from an empty cache. GitHub
     # drops entries unused for 7 days and evicts the oldest over the quota.
-    - name: Compute ccache key
+    - name: Compute Ccache key
       id: ccache
       run: |
         set -euo pipefail
@@ -195,7 +186,8 @@ jobs:
         } | sha256sum | cut -c1-16)
         echo "prefix=ccache-${{ env.DEVICE }}-${{ env.VARIANT }}-$sum-" >>"$GITHUB_OUTPUT"
 
-    - name: Restore ccache
+    - name: Restore Ccache
+      id: restore-ccache
       uses: actions/cache@v6
       with:
         path: openwrt/.ccache
@@ -284,3 +276,51 @@ jobs:
         delete_tag_pattern: ${{ env.DEVICE }}_${{ env.VARIANT }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Github Actions has 10GB cache limit, so delete the cache once restored,
+    # and only keep the latest one.
+    # `cache-hit` returns false when restore-keys are hit.
+    # if we have multiple workflow runs in parallel, 
+    # we may end up in creating multiple cache saves
+    - name: Purge sources cache
+      if: steps.restore-source.outputs.cache-hit == 'false'
+      working-directory: builder
+      run: |
+          echo "Fetching list of sources cache keys"
+          cacheKeys=$(gh cache list --key 'dl-' --json id --jq '.[].id')
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches for dl-..."
+          for cacheKey in $cacheKeys
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Done"
+
+    # One entry per run that fetched something new: the first job to get here
+    # saves, the others find the key taken. Each job restores the newest
+    # entry, so it grows to the union of every group's sources.
+    - name: Save sources cache
+      if: steps.download.outputs.grew == 1 && env.SAVE_RESTORE_DL == 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: openwrt/dl
+        key: dl-${{ github.run_id }}
+
+    # Purge Ccache after all done, to only keep the latest one
+    - name: Purge Ccache
+      if: steps.compile.outputs.status == 'success' && !cancelled()
+      working-directory: builder
+      run: |
+          echo "Fetching list of Ccache keys"
+          cacheKeys=$(gh cache list --key ccache-${{ env.DEVICE }}-${{ env.VARIANT }} --json id --jq '.[].id')
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches for ccache-${{ env.DEVICE }}-${{ env.VARIANT }}..."
+          for cacheKey in $cacheKeys
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Done"
