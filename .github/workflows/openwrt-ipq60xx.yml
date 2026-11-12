@@ -56,7 +56,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
-
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:      
     - name: Setup Env (on repository_dispatch)
       if:  github.event_name == 'repository_dispatch'
