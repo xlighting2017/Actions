@@ -138,7 +138,7 @@ jobs:
     # ccache hashes neither the assembler nor cc1, so the key covers every
     # toolchain input and a change there starts from an empty cache. GitHub
     # drops entries unused for 7 days and evicts the oldest over the quota.
-    - name: Compute ccache key
+    - name: Compute Ccache key
       id: ccache
       run: |
         set -euo pipefail
@@ -148,7 +148,7 @@ jobs:
           grep -E '^CONFIG_(BINUTILS|GCC|LIBC|MUSL|GLIBC)_' openwrt/.config
           gcc --version; as --version
         } | sha256sum | cut -c1-16)
-        echo "prefix=ccache-${{ env.TARGET_NAME }}-$sum-" >>"$GITHUB_OUTPUT"
+        echo "prefix=ccache-openwrt-${{ env.TARGET_NAME }}-$sum-" >>"$GITHUB_OUTPUT"
 
     - name: Restore ccache
       uses: actions/cache@v6
@@ -254,11 +254,11 @@ jobs:
       if: steps.compile.outputs.status == 'success' && !cancelled()
       run: |
           echo "Fetching list of Ccache keys"
-          cacheKeys=$(gh cache list --key ccache-${{ env.TARGET_NAME }} --json id --jq '.[].id')
+          cacheKeys=$(gh cache list --key ccache-openwrt-${{ env.TARGET_NAME }} --json id --jq '.[].id')
 
           ## Setting this to not fail the workflow while deleting cache keys.
           set +e
-          echo "Deleting caches for ccache-${{ env.TARGET_NAME }}..."
+          echo "Deleting caches for ccache-openwrt-${{ env.TARGET_NAME }}..."
           for cacheKey in $cacheKeys
           do
               gh cache delete $cacheKey
