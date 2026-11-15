@@ -1,8 +1,8 @@
 try to enable ARM Crypto Extensions
 ref: https://forum.openwrt.org/t/qualcommax-nss-build/148529/7520
 
---- target/linux/qualcommax/config-6.18
-+++ target/linux/qualcommax/config-6.18
+--- /target/linux/qualcommax/config-6.18
++++ /target/linux/qualcommax/config-6.18
 @@ -97,11 +97,15 @@
  CONFIG_CRC16=y
  CONFIG_CRC32_ARCH=y
