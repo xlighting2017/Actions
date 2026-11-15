@@ -283,7 +283,7 @@ jobs:
     # if we have multiple workflow runs in parallel, 
     # we may end up in creating multiple cache saves
     - name: Purge sources cache
-      if: steps.restore-source.outputs.cache-hit == 'false'
+      if: steps.restore-source.outputs.cache-hit == 'false' && steps.download.outputs.grew == 1
       working-directory: builder
       run: |
           echo "Fetching list of sources cache keys"
