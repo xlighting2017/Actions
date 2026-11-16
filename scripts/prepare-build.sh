@@ -170,6 +170,9 @@ done < <(cat "${CONFIGS[@]}" |
 if ((${#dropped[@]})); then
   log::error "defconfig dropped ${#dropped[@]} requested symbol(s) for device '$DEVICE':"
   printf '  %s\n' "${dropped[@]}" >&2
+  # debug output
+  echo "=================defconfig================="
+  echo "$(cat .config)"
   log::die "add the missing dependency or remove the line - do not ship a silently reduced image"
 fi
 
