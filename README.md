@@ -1,16 +1,20 @@
 # Actions-OpenWrt
 Personal template for building Openwrt(and other forks/variants) with GitHub Actions
 
-## Arch/Target
+## Arch/Target, auto build twice per week
 
 - armsr (Phicomm N1)
-- qualcommax/ipq807x with NSS (WiFi and ECM offloading)
-- qualcommax/ipq60xx with NSS (WiFi and ECM offloading)
-- ipq40xx (ASUS ACRH-17)
 - mediatek/filogic (BananaPi R3-Mini/JDCloud RE-CP-03/Qihoo 360T7/Redmi AX6000)
+- qualcommax/ipq807x&ipq60xx with PPE offloading + NSS WiFi
+- qualcommax/ipq60xx with NSS (WiFi and ECM offloading, kernel 6.12)
+- x86/64
+
+## Archived, build manually / occasionally
+
+- ipq40xx (ASUS ACRH-17)
+- qualcommax/ipq807x with NSS (WiFi and ECM offloading, kernel 6.12)
 - rockchip (Friendlyarm Nanopi R2S/R5C)
 - sunxi (OrangePi Zero Plus/Friendlyarm NanoPi NEO2/Friendlyarm R1S-H5)
-- x86/64
 
 ## Tips
 
