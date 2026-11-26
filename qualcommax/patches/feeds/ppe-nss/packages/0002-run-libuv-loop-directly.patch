@@ -1,5 +1,5 @@
 --- /dev/null
-+++ b/utils/ttyd/patches/110-run-libuv-loop-directly.patch
++++ utils/ttyd/patches/110-run-libuv-loop-directly.patch
 @@ -1,1 +1,23 @@
 +From fddd63815631223a794f3474869d5685362d5017 Mon Sep 17 00:00:00 2001
 +From: Daeho Ro <40587651+daeho-ro@users.noreply.github.com>
